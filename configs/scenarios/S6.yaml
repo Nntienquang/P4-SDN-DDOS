@@ -1,0 +1,8 @@
+# Background shift: tải Normal đổi mức theo giai đoạn (đánh giá adaptive threshold).
+name: S6_background_shift
+duration: 150
+probe_rate: 5
+phases:
+  - {kind: normal, start: 0,   end: 50,  hosts: [h1,h2], clients: 2}
+  - {kind: normal, start: 50,  end: 100, hosts: [h1,h2,h3,h4,h5,h6], clients: 4}
+  - {kind: normal, start: 100, end: 150, hosts: [h1,h2], clients: 2}

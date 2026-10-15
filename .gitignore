@@ -1,0 +1,13 @@
+build/*
+!build/.gitkeep
+logs/*
+!logs/.gitkeep
+results/raw/
+results/summary.csv
+figures/*.png
+models/*.pkl
+data/*.csv
+*.pcap
+__pycache__/
+*.pyc
+.env

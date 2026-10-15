@@ -1,0 +1,10 @@
+# Kịch bản CHÍNH: Flash Crowd hợp lệ + DDoS đồng thời. Đánh giá collateral damage.
+name: S5_flash_plus_ddos
+duration: 150
+probe_rate: 5
+phases:
+  - {kind: normal, start: 0,   end: 30,  hosts: [h1,h2], clients: 2}
+  - {kind: flash,  start: 30,  end: 120, hosts: [h1,h2,h3,h4,h5,h6,h7,h8], peak: 30}
+  - {kind: syn,    start: 50,  end: 110, hosts: [a1,a2], pps: 2000}
+  - {kind: udp,    start: 50,  end: 110, hosts: [a3], mbps: 8}
+  - {kind: normal, start: 120, end: 150, hosts: [h1,h2], clients: 2}

@@ -1,0 +1,7 @@
+name: S2_flash_only
+duration: 120
+probe_rate: 5
+phases:
+  - {kind: normal, start: 0,  end: 30,  hosts: [h1,h2], clients: 2}
+  - {kind: flash,  start: 30, end: 90,  hosts: [h1,h2,h3,h4,h5,h6,h7,h8], peak: 30}
+  - {kind: normal, start: 90, end: 120, hosts: [h1,h2], clients: 2}

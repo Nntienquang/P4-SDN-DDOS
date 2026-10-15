@@ -1,0 +1,9 @@
+# Cấu hình topology. Sửa ở đây rồi chạy: python3 mininet/build_topo.py
+subnet: "10.0.0"          # dải IP lab (khớp traffic/safety.py)
+n_legit: 8                # số host hợp lệ (Flash Crowd cần đa dạng nguồn)
+n_attack: 3               # số host tấn công
+server_octet: 100         # srv = 10.0.0.100
+probe_octet: 200          # probe = 10.0.0.200
+link_bw_mbps: 20          # băng thông link host-switch
+server_bw_mbps: 10        # link tới server = nút cổ chai (để DDoS gây hại)
+link_delay: "2ms"

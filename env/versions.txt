@@ -1,0 +1,15 @@
+# Ghi phiên bản công cụ của NHÓM vào đây (tuần 1). Lệnh lấy phiên bản:
+#   p4c --version ; simple_switch_grpc --version ; python3 --version
+#   pip show grpcio protobuf scikit-learn | grep -E "Name|Version"
+#   lsb_release -d
+#
+# Ví dụ (điền số thật của máy nhóm):
+os                = Ubuntu 22.04 (P4 tutorial VM)
+p4c               = ?
+bmv2              = ?
+mininet           = ?
+python            = ?
+grpcio            = ?
+protobuf          = ?
+scikit-learn      = ?
+p4runtime (PyPI)  = 1.6.0   # bản mới nhất 10/2026; dùng bản đi kèm VM, ghi rõ

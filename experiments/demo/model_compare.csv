@@ -1,0 +1,6 @@
+method,precision,recall,f1,fpr,flash_fpr
+StaticThreshold,0.8991,0.7778,0.834,0.0217,0.0873
+EWMA,0.4846,1.0,0.6528,0.2648,1.0
+LogisticRegression,1.0,1.0,1.0,0.0,0.0
+RandomForest,1.0,1.0,1.0,0.0,0.0
+XGBoost,1.0,1.0,1.0,0.0,0.0
