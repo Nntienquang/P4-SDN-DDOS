@@ -7,6 +7,13 @@ sửa và thu dữ liệu thật. Luân phiên Driver–Reviewer–Tester mỗi 
 **Quy ước:** lệnh bắt đầu bằng `$` chạy trên máy/VM; lệnh trong `mininet>` chạy
 trong Mininet CLI; `h1 <cmd>` nghĩa là chạy `<cmd>` trên host h1.
 
+> **Cập nhật theo góp ý giảng viên (bản 2):** đã bổ sung vào code — Jain's
+> fairness index + Gini (`metrics/service_metrics.py`), bootstrap CI cho LSR và
+> hiệu chỉnh đa so sánh Holm–Bonferroni (`analysis/aggregate.py`), growth_slope
+> tính theo 3 window gần nhất (`controller/features.py`). Thêm việc: **đo năng
+> lực BMv2 ngay tuần 3** (throughput/pps/latency + CPU/RAM của tiến trình BMv2),
+> và một mục **"Threats to Validity"** trong báo cáo cuối.
+
 Trước khi đụng testbed, ai cũng nên chạy được phần offline (không cần P4):
 ```bash
 $ pip install -r requirements.txt

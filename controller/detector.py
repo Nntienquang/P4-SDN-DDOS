@@ -96,6 +96,8 @@ def main():
 
     prev_snap = reader.read_snapshot()
     prev_pr = None
+    from collections import deque
+    recent_rates = deque(maxlen=3)   # growth_slope trên 3 window gần nhất
     warmup_rates = []
     t0 = time.monotonic()
     print("[detector] bắt đầu vòng lặp online, poll=%.2fs" % args.poll)
@@ -103,8 +105,10 @@ def main():
         while True:
             time.sleep(args.poll)
             snap = reader.read_snapshot()
-            feat = F.compute_features(snap, prev_snap, prev_packet_rate=prev_pr)
+            feat = F.compute_features(snap, prev_snap, prev_packet_rate=prev_pr,
+                                      recent_rates=list(recent_rates))
             prev_snap, prev_pr = snap, feat["packet_rate"]
+            recent_rates.append(feat["packet_rate"])
 
             if model is not None:
                 pred = int(model.predict([F.feature_vector(feat)])[0])

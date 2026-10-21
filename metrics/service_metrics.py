@@ -34,6 +34,51 @@ def latency_percentiles(probe_results):
     return {"p50": median(lat), "p95": _percentile(lat, 95)}
 
 
+def jains_fairness(values):
+    """Jain's fairness index trên phân bố (vd LSR của từng client hợp lệ).
+
+    J = (Σx)^2 / (n · Σx^2), nằm trong [1/n, 1]; =1 là công bằng tuyệt đối.
+    Trả lời: mitigation có đối xử công bằng giữa các user hợp lệ không
+    (góp ý giảng viên). None nếu không có dữ liệu.
+    """
+    xs = [float(v) for v in values if v is not None]
+    if not xs:
+        return None
+    s = sum(xs)
+    s2 = sum(x * x for x in xs)
+    if s2 == 0:
+        return 1.0
+    return (s * s) / (len(xs) * s2)
+
+
+def gini(values):
+    """Hệ số Gini của phân bố (0 = đều tuyệt đối, 1 = bất bình đẳng tối đa).
+
+    Bổ sung bên cạnh Jain's index để mô tả độ lệch LSR giữa các client.
+    """
+    xs = sorted(float(v) for v in values if v is not None)
+    n = len(xs)
+    if n == 0 or sum(xs) == 0:
+        return 0.0
+    cum = 0.0
+    for i, x in enumerate(xs, 1):
+        cum += i * x
+    return (2 * cum) / (n * sum(xs)) - (n + 1) / n
+
+
+def lsr_per_client(probe_results_by_client):
+    """LSR cho TỪNG client -> list, để tính fairness.
+
+    probe_results_by_client: dict {client_id: [ {ok, latency_ms}, ... ]}.
+    """
+    out = []
+    for _, results in probe_results_by_client.items():
+        lsr = legitimate_success_rate(results)
+        if lsr is not None:
+            out.append(lsr)
+    return out
+
+
 def _percentile(sorted_vals, p):
     if not sorted_vals:
         return None

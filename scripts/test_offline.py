@@ -109,6 +109,34 @@ def test_metrics():
     check("detection_latency = 2.0", M.detection_latency(10.0, 12.0) == 2.0)
     check("detection_latency None khi không phát hiện",
           M.detection_latency(10.0, None) is None)
+    # fairness (góp ý giảng viên)
+    check("Jain = 1.0 khi mọi client bằng nhau",
+          abs(M.jains_fairness([0.9, 0.9, 0.9]) - 1.0) < 1e-9)
+    check("Jain < 1 khi lệch", M.jains_fairness([1.0, 0.0, 0.0]) < 0.4)
+    check("Gini = 0 khi đều", abs(M.gini([0.9, 0.9, 0.9])) < 1e-9)
+    check("Gini > 0 khi lệch", M.gini([1.0, 0.0, 0.0]) > 0.5)
+
+
+def test_feature_slope():
+    print("[feature slope]")
+    check("linear_slope tăng đều = 1", abs(F.linear_slope([0, 1, 2, 3]) - 1.0) < 1e-9)
+    check("linear_slope phẳng = 0", abs(F.linear_slope([5, 5, 5])) < 1e-9)
+    check("linear_slope 1 điểm = 0", F.linear_slope([7]) == 0.0)
+
+
+def test_stats():
+    print("[stats]")
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "aggregate", os.path.join(ROOT, "analysis", "aggregate.py"))
+    AG = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(AG)
+    est, lo, hi = AG.bootstrap_ci([0.9, 0.92, 0.88, 0.91, 0.9])
+    check("bootstrap mean hợp lý", 0.88 <= est <= 0.92)
+    check("bootstrap lo <= est <= hi", lo <= est <= hi)
+    res = AG.holm_bonferroni({"a": 0.001, "b": 0.04, "c": 0.5})
+    check("Holm: p nhỏ nhất bị hiệu chỉnh ×3", abs(res["a"][1] - 0.003) < 1e-9)
+    check("Holm: p lớn không bác bỏ", res["c"][2] is False)
 
 
 if __name__ == "__main__":
@@ -116,4 +144,6 @@ if __name__ == "__main__":
     test_detectors()
     test_policy()
     test_metrics()
+    test_feature_slope()
+    test_stats()
     print("\nTẤT CẢ %d kiểm tra PASS." % passed)

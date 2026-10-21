@@ -51,6 +51,21 @@ def estimate_sources(popcount, bitmap_size):
     return -m * math.log(V)
 
 
+def linear_slope(values):
+    """Độ dốc (hệ số góc) của đường hồi quy tuyến tính qua 'values' theo chỉ số
+    thời gian 0,1,2,... Dùng cho growth_slope mượt hơn 1-bước (góp ý giảng viên:
+    slope tính trên vài window gần nhất để bớt nhiễu)."""
+    n = len(values)
+    if n < 2:
+        return 0.0
+    xs = list(range(n))
+    mx = sum(xs) / n
+    my = sum(values) / n
+    num = sum((x - mx) * (y - my) for x, y in zip(xs, values))
+    den = sum((x - mx) ** 2 for x in xs)
+    return num / den if den else 0.0
+
+
 def shannon_entropy_norm(counts):
     """Entropy Shannon chuẩn hóa [0,1] của phân bố 'counts' (vd packet theo cổng).
 
@@ -88,11 +103,13 @@ def diff_snapshot(cur, prev):
     return dt, d_total, d_bytes, d_syn, d_ack, d_udp, d_ports
 
 
-def compute_features(cur, prev, prev_packet_rate=None):
+def compute_features(cur, prev, prev_packet_rate=None, recent_rates=None):
     """Trả về dict feature cho một window.
 
-    prev_packet_rate: packet_rate của window TRƯỚC, để tính growth_slope.
-    Với window đầu tiên, truyền None -> growth_slope = 0.
+    prev_packet_rate: packet_rate của window TRƯỚC (dùng khi không có lịch sử).
+    recent_rates: list packet_rate của vài window gần nhất (cũ -> mới, CHƯA gồm
+      window hiện tại). Nếu có, growth_slope = độ dốc hồi quy trên
+      recent_rates + [packet_rate] (mượt hơn, bớt nhiễu — góp ý giảng viên).
     """
     dt, d_total, d_bytes, d_syn, d_ack, d_udp, d_ports = diff_snapshot(cur, prev)
 
@@ -106,7 +123,12 @@ def compute_features(cur, prev, prev_packet_rate=None):
     source_count = estimate_sources(cur.get("src_popcount", 0),
                                     cur.get("bitmap_size", 1))
     source_entropy = shannon_entropy_norm(d_ports)
-    growth_slope = 0.0 if prev_packet_rate is None else (packet_rate - prev_packet_rate)
+    if recent_rates:
+        growth_slope = linear_slope(list(recent_rates) + [packet_rate])
+    elif prev_packet_rate is not None:
+        growth_slope = packet_rate - prev_packet_rate
+    else:
+        growth_slope = 0.0
 
     return {
         "packet_rate": packet_rate,

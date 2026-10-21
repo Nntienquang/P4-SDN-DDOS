@@ -139,6 +139,55 @@ def _norm_cdf(x):
     return 0.5 * (1 + math.erf(x / math.sqrt(2)))
 
 
+def bootstrap_ci(values, stat="mean", n_boot=2000, alpha=0.05, seed=0):
+    """Khoảng tin cậy bootstrap (percentile). Dùng cho metric tỉ lệ như LSR
+    (bị chặn [0,1]) vì t-test thường không phù hợp — góp ý giảng viên.
+
+    Trả về (điểm ước lượng, lo, hi). stat='mean' hoặc 'median'.
+    """
+    import random
+    xs = [float(v) for v in values if v is not None]
+    n = len(xs)
+    if n == 0:
+        return (None, None, None)
+    if n == 1:
+        return (xs[0], xs[0], xs[0])
+    rng = random.Random(seed)
+    f = (sum(x for x in xs) / n) if stat == "mean" else _median(xs)
+    boots = []
+    for _ in range(n_boot):
+        sample = [xs[rng.randrange(n)] for _ in range(n)]
+        boots.append(sum(sample) / n if stat == "mean" else _median(sample))
+    boots.sort()
+    lo = boots[int((alpha / 2) * n_boot)]
+    hi = boots[int((1 - alpha / 2) * n_boot) - 1]
+    return (f, lo, hi)
+
+
+def _median(xs):
+    ys = sorted(xs)
+    m = len(ys)
+    return ys[m // 2] if m % 2 else (ys[m // 2 - 1] + ys[m // 2]) / 2
+
+
+def holm_bonferroni(pvalues, alpha=0.05):
+    """Hiệu chỉnh đa so sánh Holm–Bonferroni — tránh false positive khi so
+    nhiều baseline × nhiều scenario (góp ý giảng viên).
+
+    pvalues: dict {tên: p}. Trả về dict {tên: (p, p_hiệu_chỉnh, bác_bỏ_H0?)}.
+    """
+    items = sorted(pvalues.items(), key=lambda kv: kv[1])
+    m = len(items)
+    out = {}
+    prev_adj = 0.0
+    for i, (name, p) in enumerate(items):
+        adj = min(1.0, (m - i) * p)
+        adj = max(adj, prev_adj)   # giữ tính đơn điệu
+        prev_adj = adj
+        out[name] = (p, adj, adj < alpha)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--raw", default="results/raw")
