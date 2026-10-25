@@ -28,7 +28,7 @@ topo:
 # 3) Dựng Mininet + BMv2, nạp pipeline, vào CLI (hoặc chạy scenario)
 #    make run SCENARIO=configs/scenarios/S5.yaml
 run: build topo
-	sudo -E python3 mininet/run_net.py \
+	sudo PATH=$(PATH) python3 mininet/run_net.py \
 	  --p4info $(BUILD)/telemetry.p4.p4info.txtpb \
 	  --bmv2   $(BUILD)/telemetry.json \
 	  --runtime mininet/s1-runtime.json \

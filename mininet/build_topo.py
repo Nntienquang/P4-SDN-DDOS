@@ -36,17 +36,16 @@ def build(cfg):
 
     port = 1
     sw_mac_base = 0x0100
+    host_ips = {}
 
     def add_host(name, host_id, last_octet, is_server=False):
         nonlocal port
         ip = "%s.%s" % (subnet, last_octet)
+        host_ips[name] = ip
         hosts[name] = {
             "ip": "%s/24" % ip,
             "mac": mac(host_id),
-            "commands": [
-                "route add default gw %s.254 dev eth0" % subnet,
-                "arp -i eth0 -s %s.254 %s" % (subnet, mac(sw_mac_base)),
-            ],
+            "commands": [],
         }
         link_bw = server_bw if is_server else bw
         links.append({
@@ -73,6 +72,13 @@ def build(cfg):
     # host tấn công
     for k in range(cfg.get("n_attack", 3)):
         add_host("a%d" % (k + 1), hid, 50 + k); hid += 1
+
+    gw_mac = mac(sw_mac_base)
+    for hname, hinfo in hosts.items():
+        hinfo["commands"] = [
+            "arp -s %s %s" % (peer_ip, gw_mac)
+            for pname, peer_ip in host_ips.items() if pname != hname
+        ]
 
     topology = {
         "hosts": hosts,

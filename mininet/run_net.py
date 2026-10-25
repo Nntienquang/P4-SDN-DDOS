@@ -63,11 +63,12 @@ def build_net(p4info, bmv2_json, runtime_json):
 def program_switch(p4info, bmv2_json, runtime_json):
     import p4runtime_lib.simple_controller
     workdir = ROOT
-    p4runtime_lib.simple_controller.program_switch(
-        addr="127.0.0.1:50051", device_id=0,
-        sw_conf_file=runtime_json, workdir=workdir,
-        proto_dump_fpath="logs/p4runtime_bootstrap.txt",
-        runtime_json=runtime_json)
+    with open(runtime_json, 'r') as sw_conf_file:
+        p4runtime_lib.simple_controller.program_switch(
+            addr="127.0.0.1:50051", device_id=0,
+            sw_conf_file=sw_conf_file, workdir=workdir,
+            proto_dump_fpath="logs/p4runtime_bootstrap.txt",
+            runtime_json=runtime_json)
     print("[run_net] đã nạp pipeline + forwarding vào s1.")
 
 
