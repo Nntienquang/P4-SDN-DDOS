@@ -1,461 +1,478 @@
-# Sổ tay thực hành 11 tuần — BẢN DỄ HIỂU CHO NGƯỜI MỚI
+# Sổ tay thực hành 11 tuần — BẢN HOÀN THIỆN CHO NGƯỜI MỚI
 
-> Bản này viết cho người **chưa biết gì về mạng/P4**. Mỗi thuật ngữ đều được
-> giải thích bằng lời thường ngày. Cứ làm từ từ, không cần hiểu hết ngay —
-> hiểu tới đâu làm tới đó. Bản kỹ thuật gọn hơn là `HANDBOOK.md`.
+> Viết cho người **chưa biết gì về mạng/P4**. Mọi thuật ngữ đều giải thích bằng
+> lời thường ngày. Làm từ từ, hiểu tới đâu làm tới đó. Gặp từ lạ → tra **Bảng
+> thuật ngữ** ở cuối. Gặp lỗi → xem **Phụ lục: Lỗi thường gặp & cách sửa**.
 
-## Đọc cái này trước (3 phút)
+## Đọc trước (3 phút)
 
 **Đề tài làm gì?** Dựng một mạng giả trong máy ảo, cho "người dùng thật" và "kẻ
-tấn công" cùng gửi dữ liệu tới một web server. Hệ thống của nhóm đứng ở giữa,
-quan sát, **phân biệt ai là người thật — ai là tấn công**, rồi chặn kẻ tấn công
-mà **không chặn nhầm người thật**.
+tấn công" cùng gửi dữ liệu tới một web server. Hệ thống của nhóm đứng giữa, quan
+sát, **phân biệt người thật với tấn công**, rồi chặn kẻ tấn công mà **không chặn
+nhầm người thật**.
 
-**Ký hiệu trong tài liệu:**
-- `$ lệnh` = gõ vào **Terminal** (cửa sổ dòng lệnh màu đen).
+**Ký hiệu:**
+- `$ lệnh` = gõ vào **Terminal** (cửa sổ dòng lệnh).
 - `mininet>` = gõ khi đang ở trong Mininet.
-- "🟢 máy ảo" = làm trong Ubuntu (máy ảo). Hầu như mọi thứ đều ở đây.
+- 🟢 = làm trong máy ảo. 🔴 = làm ở máy thật (VMware).
 
-**Quy tắc sống còn cho newbie:**
-1. Một tuần coi là xong khi **chạy ra kết quả**, không phải khi "đã đọc hiểu".
-2. Gặp từ lạ → tra **Bảng thuật ngữ** ở cuối tài liệu này.
-3. Kẹt lỗi quá 1 buổi → hỏi ngay (GVHD, bạn, hoặc chat), đừng ngồi mò cả ngày.
-4. Mỗi lần chạy xong việc gì → **chụp màn hình** lưu lại để làm báo cáo.
+**4 quy tắc sống còn cho newbie:**
+1. Một tuần xong khi **chạy ra kết quả**, không phải khi "đã đọc hiểu".
+2. Gặp từ lạ → tra Bảng thuật ngữ. Gặp lỗi → tra Phụ lục lỗi.
+3. Kẹt quá 1 buổi → hỏi ngay, đừng mò cả ngày.
+4. Mỗi việc xong → **chụp màn hình** lưu cho báo cáo, và ghi 1 dòng vào
+   `experiments/LOG.md`.
 
-**Làm thử ngay (không cần cài gì nặng):**
+---
+
+# PHẦN 0 — CHUẨN BỊ MÔI TRƯỜNG (BẮT BUỘC, làm trước mọi tuần)
+
+> ⚠️ Đây là phần newbie hay vấp nhất. Đọc kỹ, làm đúng để khỏi mất cả ngày.
+
+## 0.1. Dùng MÁY ẢO P4 CÓ SẴN — đừng tự biên dịch
+
+**KHÔNG tự cài p4c/BMv2 trên Ubuntu mới (nhất là 26.04)** — sẽ lỗi liên miên
+(bản vá hỏng, phiên bản lệch), mất cả buổi. Thay vào đó tải máy ảo đã cài sẵn
+**p4c + BMv2 + Mininet** trên Ubuntu 24.04:
+
+**Bước 1 — Tải máy ảo** (🔴 trình duyệt máy thật), chọn theo máy:
+- Windows / Intel / AMD: máy ảo P4 bản **x86_64**
+- Mac chip Apple (M1/M2/M3): bản **aarch64**
+
+(Link lấy ở: repo `jafingerhut/p4-guide` → `bin/README-install-troubleshooting.md`,
+bảng "VM images". Hoặc hỏi người đã tải trong nhóm gửi lại. File ~5GB.)
+
+**Bước 2 — Import vào VMware** (🔴 máy thật): File → Open → chọn file `.ova` →
+Import. Đăng nhập: user **`p4`** / mật khẩu **`p4`**.
+
+**Bước 3 — Tăng tài nguyên** (🔴 VMware → Edit settings): RAM **8GB**, CPU **4**,
+ổ **≥60GB** (nếu máy thật đủ).
+
+**⚠️ KHI MÁY ẢO HỎI NÂNG CẤP LÊN 26.04 → BẤM "Don't Upgrade".** Nâng là hỏng P4.
+Tắt nhắc nhở cho đỡ phiền:
 ```bash
-$ cd ~/nckh/sdn-p4-ddos
-$ pip install -r requirements.txt
-$ make test            # phải thấy: TẤT CẢ 38 kiểm tra PASS
+sudo sed -i 's/^Prompt=.*/Prompt=never/' /etc/update-manager/release-upgrades
 ```
-Nếu ra "38 kiểm tra PASS" nghĩa là phần não của hệ thống (phát hiện, chặn, đo
-đạc) chạy đúng. Chưa cần hiểu tại sao — chỉ cần biết nó chạy được.
+
+## 0.2. Lấy code của nhóm về (🟢 máy ảo)
+```bash
+cd ~
+git clone https://github.com/Nntienquang/P4-SDN-DDOS.git
+cd P4-SDN-DDOS
+```
+
+## 0.3. Cài vài công cụ còn thiếu (🟢 máy ảo)
+
+Máy ảo P4 có sẵn p4c/BMv2/Mininet nhưng **thiếu vài công cụ phụ**. Cài thêm:
+```bash
+sudo apt update
+sudo apt install -y iperf3 hping3 wrk
+```
+- `iperf3` = đo tốc độ mạng (dùng tuần 3 đo năng lực BMv2).
+- `hping3` = sinh gói SYN (dùng tuần 5 làm SYN flood trong lab).
+- `wrk` = tạo tải HTTP (đo sức chứa server).
+
+## 0.4. Khai báo Git + token (🟢 máy ảo, làm 1 lần mỗi máy)
+```bash
+git config --global user.name "Ten That Cua Minh"
+git config --global user.email "email-github@gmail.com"
+git config --global credential.helper store    # để khỏi nhập token mỗi lần
+```
+Khi `git push` hỏi: Username = tài khoản GitHub, Password = **Personal Access
+Token** (chuỗi `ghp_...`, tạo ở GitHub → Settings → Developer settings → Personal
+access tokens → tick `repo`). **KHÔNG dùng mật khẩu GitHub** — GitHub không nhận.
+
+## 0.5. Lưu ý môi trường Python (QUAN TRỌNG)
+
+Máy ảo P4 tự bật một **môi trường ảo Python** tên `(p4dev-python-venv)` (thấy ở
+đầu dòng Terminal). Mininet, grpc, protobuf đều nằm trong đó. **Giữ nó bật**,
+đừng `deactivate`. Code của nhóm (Makefile) đã xử lý để chạy đúng với venv này.
+
+## 0.6. Chạy thử xác nhận môi trường OK
+```bash
+pip install -r requirements.txt    # thư viện cho phần phân tích (nếu thiếu)
+make test                          # phải thấy: TẤT CẢ 38 kiểm tra PASS
+```
+Ra "38 PASS" = phần não hệ thống (phát hiện/chặn/đo) chạy đúng. Chưa cần hiểu sâu.
 
 ---
 
 # TUẦN 1 — Làm quen mạng và nhìn thấy "gói tin"
 
-**Tuần này làm gì:** tập **nhìn thấy** dữ liệu chạy trên mạng, và dựng thử một
-mạng giả nhỏ xíu.
+**Làm gì:** tập **nhìn thấy** dữ liệu chạy trên mạng, dựng mạng giả nhỏ.
 
-**Cần hiểu (nói đơn giản):**
-- **Gói tin (packet):** dữ liệu trên mạng đi theo từng "bưu kiện" nhỏ gọi là gói.
-- **TCP:** bộ quy tắc gửi dữ liệu có "bắt tay" trước và xác nhận — giống gửi thư
-  bảo đảm. Bắt tay 3 bước: **SYN → SYN-ACK → ACK** (gõ cửa → ai đó? → tôi đây).
-- **Mininet:** công cụ tạo ra "nhiều máy tính ảo" ngay trong một máy, để giả lập
-  mạng mà không cần máy thật.
-- **Switch:** thiết bị nối các máy lại và chuyển dữ liệu đến đúng máy (như bưu cục).
+**Cần hiểu:**
+- **Gói tin (packet):** dữ liệu đi theo từng "bưu kiện" nhỏ.
+- **TCP:** quy tắc gửi dữ liệu có "bắt tay" trước: **SYN → SYN-ACK → ACK** (gõ
+  cửa → ai đó? → tôi đây).
+- **Mininet:** tạo "nhiều máy ảo" trong một máy để giả lập mạng.
+- **Switch:** thiết bị nối máy và chuyển gói đến đúng nơi (như bưu cục).
 
 **Làm từng bước:**
+```bash
+$ sudo mn --test pingall           # mạng giả cơ bản, các máy gọi nhau
+```
+→ `Results: 0% dropped (2/2 received)` = mạng thông.
 
-1. Chạy mạng giả có sẵn của Mininet và cho các máy "gọi" nhau:
-   ```bash
-   $ sudo mn --test pingall
-   ```
-   → **Kết quả mong đợi:** dòng `Results: 0% dropped (2/2 received)` = các máy
-   thông nhau, không mất gói. (`ping` = gửi tín hiệu "còn sống không?")
+Bắt tay TCP — mở **2 Terminal**:
+```bash
+# Terminal 1 (máy ghi âm mạng, ngồi chờ):
+$ cd ~/P4-SDN-DDOS
+$ sudo tcpdump -i any -w docs/w1_tcp.pcap 'tcp port 80'
+# Terminal 2 (tạo dữ liệu để ghi):
+$ cd /tmp && sudo python3 -m http.server 80 &
+$ curl http://127.0.0.1/
+# quay lại Terminal 1 -> Ctrl+C dừng ghi
+$ tcpdump -n -r docs/w1_tcp.pcap 'tcp port 80' | head
+```
+→ Thấy `Flags [S]` (SYN), `[S.]` (SYN-ACK), `[.]` (ACK) = bắt tay 3 bước. Mở đẹp:
+`wireshark docs/w1_tcp.pcap &`
 
-2. "Ghi âm" dữ liệu mạng để xem bắt tay TCP. Mở **2 Terminal**:
-
-   Terminal 1 — bật máy ghi:
-   ```bash
-   $ cd ~/nckh/sdn-p4-ddos
-   $ sudo tcpdump -i any -w docs/w1_tcp.pcap 'tcp port 80'
-   ```
-   (tcpdump = máy ghi âm mạng; `tcp port 80` = chỉ ghi dữ liệu web; nó sẽ ngồi chờ)
-
-   Terminal 2 — tạo ra dữ liệu để ghi:
-   ```bash
-   $ cd /tmp
-   $ sudo python3 -m http.server 80 &   # dựng web server tạm
-   $ curl http://127.0.0.1/             # gửi 1 yêu cầu web
-   ```
-   (curl = trình duyệt dòng lệnh; 127.0.0.1 = chính máy này)
-
-   Quay lại Terminal 1 → nhấn **Ctrl + C** để dừng ghi.
-
-3. Xem lại file vừa ghi:
-   ```bash
-   $ tcpdump -n -r docs/w1_tcp.pcap 'tcp port 80' | head
-   ```
-   → **Kết quả mong đợi:** thấy `Flags [S]` (SYN), `Flags [S.]` (SYN-ACK),
-   `Flags [.]` (ACK) — đó là bắt tay 3 bước. Mở đẹp hơn bằng:
-   `wireshark docs/w1_tcp.pcap &`
-
-**Dấu hiệu đã xong tuần 1:**
-- [ ] `pingall` ra 0% dropped.
-- [ ] Có file pcap thấy được SYN / SYN-ACK / ACK.
-- [ ] Cả nhóm nói được: packet là gì, bắt tay TCP là gì (không nhìn tài liệu).
-
-**Nếu lỗi:** Mininet treo → `sudo mn -c` rồi chạy lại. Cổng 80 bận → có nginx
-đang chạy sẵn, không sao, vẫn bắt được bắt tay.
+**Dấu hiệu đã xong:** pingall 0% dropped; pcap thấy SYN/SYN-ACK/ACK; cả nhóm giải
+thích được packet, bắt tay TCP.
 
 ---
 
 # TUẦN 2 — Tự dựng mạng cho đề tài
 
-**Tuần này làm gì:** thay vì dùng mạng mẫu, tự dựng mạng **đúng theo đề tài**:
-nhiều người dùng, vài kẻ tấn công, một server, một máy đo.
+**Làm gì:** dựng mạng đúng đề tài: nhiều người dùng + vài kẻ tấn công + server +
+máy đo (probe).
 
 **Cần hiểu:**
-- **topology (sơ đồ mạng):** bản vẽ "máy nào nối với máy nào". Của nhóm:
-  người dùng + kẻ tấn công + server + probe, tất cả cắm vào 1 switch.
-- **File `configs/topology.yaml`:** nơi bạn chỉnh số máy, IP, tốc độ — rồi máy tự
-  dựng mạng theo đó. Mọi máy cùng dải `10.0.0.x` (cùng một mạng).
-- **probe:** một máy "người dùng mẫu" gửi request đều đều để **đo xem dịch vụ còn
-  dùng được không** (chỉ số LSR sau này).
-- **nút cổ chai (bottleneck):** đường tới server để hẹp (10 Mbps) **cố tình**, để
-  tấn công mới gây nghẽn được — nếu rộng vô hạn thì thí nghiệm vô nghĩa.
-
-**Làm từng bước:**
-
-1. Xem/chỉnh cấu hình mạng (chưa cần sửa cũng được, số mặc định đã ổn):
-   ```bash
-   $ nano configs/topology.yaml
-   ```
-   (bên trong: `n_legit: 8` = 8 người dùng, `n_attack: 3` = 3 kẻ tấn công…)
-
-2. Sinh mạng từ cấu hình:
-   ```bash
-   $ python3 mininet/build_topo.py
-   ```
-   → **Kết quả mong đợi:** in ra `Đã sinh topology: 8 host hợp lệ, 3 host tấn
-   công, 1 probe, 1 server.` và tạo 2 file trong thư mục `mininet/`.
-
-3. (Tuần 2 chưa có P4) Đo thử "sức chứa" của server để sau biết chọn tốc độ tấn
-   công: dùng `iperf3` hoặc `wrk`. Ghi lại con số throughput nền.
-
-**Dấu hiệu đã xong tuần 2:**
-- [ ] `build_topo.py` chạy ra đúng số máy.
-- [ ] Hiểu được: vì sao mọi máy cùng 1 mạng, vì sao server để đường hẹp.
-
-**Nếu lỗi:** thiếu thư viện yaml → `pip install pyyaml` (nhưng code có bản dự
-phòng, thường vẫn chạy).
-
----
-
-# TUẦN 3 — Lập trình cho switch bằng P4 (QUAN TRỌNG)
-
-> Từ tuần này cần **p4c** và **BMv2** (cài ở tuần 2–3). Chưa có thì xem mục cài
-> đặt cuối tài liệu, hoặc dùng P4 tutorial VM có sẵn.
-
-**Tuần này làm gì:** biên dịch chương trình P4 và cho máy ping nhau **qua switch
-P4** (thay vì switch mặc định).
-
-**Cần hiểu:**
-- **P4:** ngôn ngữ để **lập trình cách switch xử lý từng gói tin** (đọc gì, chuyển
-  đi đâu, đếm cái gì). Không phải ngôn ngữ viết app.
-- **BMv2:** một switch **phần mềm** để chạy thử chương trình P4 (chậm, chỉ để học,
-  không dùng số liệu tốc độ của nó để nói về phần cứng thật).
-- **Pipeline P4:** gói tin đi qua 4 chặng — Parser (đọc header) → Ingress (tra
-  bảng, đếm, chặn) → Egress → Deparser (gói lại, gửi ra).
-- **Counter:** bộ đếm trong switch (đếm số gói/byte).
+- **topology (sơ đồ mạng):** bản vẽ "máy nào nối máy nào".
+- **File `configs/topology.yaml`:** chỉnh số máy, IP, tốc độ ở đây. Mọi máy cùng
+  dải `10.0.0.x` (một mạng), cùng cắm vào 1 switch.
+- **probe:** máy "người dùng mẫu" gửi request đều để đo dịch vụ còn dùng được
+  không (chỉ số LSR).
+- **nút cổ chai:** đường tới server để hẹp (10 Mbps) cố tình, để tấn công mới
+  gây nghẽn được.
 
 **Làm từng bước:**
 ```bash
-$ export P4_UTILS=$HOME/tutorials/utils   # chỉ đường tới thư viện P4
-$ make build        # biên dịch p4/telemetry.p4 -> thư mục build/
-$ make run          # dựng Mininet + switch P4, vào CLI
-mininet> h1 ping -c3 srv     # h1 ping server qua switch P4
+$ nano configs/topology.yaml       # xem/chỉnh (mặc định đã ổn, không cần sửa)
+$ python3 mininet/build_topo.py    # sinh mạng từ cấu hình
 ```
-→ **Kết quả mong đợi:** `make build` không báo lỗi; trong CLI, `h1 ping srv`
-thành công (0% loss).
+→ In `Đã sinh topology: 8 host hợp lệ, 3 host tấn công, 1 probe, 1 server.`
 
-**Dấu hiệu đã xong (CHECKPOINT 1):** h1 ping được srv qua switch P4; cả nhóm đọc
-hiểu được sơ đồ pipeline.
+**Dấu hiệu đã xong:** build_topo.py chạy ra đúng số máy; hiểu vì sao mọi máy cùng
+1 mạng và vì sao server để đường hẹp.
 
-**Nếu lỗi:** `p4c: command not found` → chưa cài toolchain, dùng P4 tutorial VM.
-`cannot bind port 50051` → còn switch cũ, `make clean` rồi chạy lại. p4c báo lỗi
-cú pháp theo phiên bản → sửa nhỏ theo thông báo, ghi phiên bản vào `env/versions.txt`.
+---
+
+# TUẦN 3 — Lập trình switch bằng P4 (CHECKPOINT 1)
+
+**Làm gì:** biên dịch chương trình P4, cho máy ping nhau **qua switch P4**.
+
+**Cần hiểu:**
+- **P4:** ngôn ngữ **lập trình cách switch xử lý gói** (đọc gì, chuyển đâu, đếm
+  gì). Không phải ngôn ngữ viết app.
+- **BMv2:** switch **phần mềm** để chạy thử P4 (chậm, chỉ để học).
+- **Pipeline P4:** gói đi qua 4 chặng — **Parser** (đọc header) → **Ingress**
+  (tra bảng, đếm counter, chặn) → **Egress** → **Deparser** (gói lại, gửi ra).
+- **Counter:** bộ đếm gói/byte trong switch.
+- **iperf3:** công cụ đo tốc độ mạng tối đa (như Speedtest cho mạng nội bộ).
+
+**Làm từng bước:**
+```bash
+$ cd ~/P4-SDN-DDOS
+$ make build        # biên dịch p4/telemetry.p4 -> phải thấy "OK: đã biên dịch P4"
+$ make run          # dựng Mininet + switch P4, vào CLI (giữ venv bật!)
+mininet> h1 ping -c3 srv
+```
+→ Ping ra **0% loss** = h1 nói chuyện được với server **qua switch P4** = ✅
+**CHECKPOINT 1**.
+
+**Kiểm tra thêm (web qua switch):**
+```
+mininet> h1 curl -s -o /dev/null -w "HTTP code: %{http_code}\n" http://10.0.0.100/
+```
+→ `HTTP code: 200` = web cũng chạy qua switch.
+
+**Đo năng lực BMv2 (quan trọng — theo góp ý giảng viên):**
+```
+mininet> srv iperf3 -s -p 5201 &
+mininet> h1 iperf3 -c 10.0.0.100 -p 5201 -t 10
+```
+→ Xem dòng cuối lấy con số **Mbps**. Ghi lại:
+- ~9–10 Mbps → BMv2 theo kịp link (nút nghẽn là link, đúng thiết kế).
+- Thấp hơn nhiều → **BMv2 là nút nghẽn**, phải chọn rate tấn công dưới mức này.
+
+**Ghi phiên bản công cụ (máy mới nên ghi lại):**
+```bash
+$ { echo "=== $(date +%F) ==="; p4c --version; python3 --version; lsb_release -d; } >> env/versions.txt
+```
+
+**Sản phẩm tuần 3:** ping qua P4 (0% loss), HTTP 200, con số iperf3 BMv2,
+`env/versions.txt`, và `docs/p4_pipeline.md` (giải thích pipeline — làm dần, cho
+báo cáo Chương 2/3).
 
 ---
 
 # TUẦN 4 — Đọc số liệu từ switch (CHECKPOINT 2)
 
-**Tuần này làm gì:** viết chương trình (controller) **đọc các bộ đếm** từ switch
-mỗi giây — để biết traffic đang nhiều hay ít.
+**Làm gì:** viết controller **đọc counter** từ switch mỗi giây → biết traffic
+nhiều/ít.
 
 **Cần hiểu:**
-- **Controller:** "bộ não" chạy trên máy, đọc số liệu từ switch và ra lệnh.
-- **P4Runtime:** "đường dây" nối controller với switch để đọc counter / nạp rule.
-- **rate (tốc độ):** counter là số **cộng dồn**, phải lấy **hiệu 2 lần đọc** mới ra
-  tốc độ. Ví dụ: giây này 1000 gói, giây trước 800 → tốc độ = 200 gói/giây.
-- **register, meter:** bộ nhớ nhỏ trong switch (ước lượng số nguồn) và cơ chế giới
-  hạn tốc độ (dùng để chặn sau này).
+- **Controller:** "bộ não" chạy trên máy, đọc số liệu và ra lệnh cho switch.
+- **P4Runtime:** "đường dây" nối controller với switch.
+- **rate (tốc độ):** counter là số **cộng dồn**, phải lấy **hiệu 2 lần đọc** mới
+  ra tốc độ. VD giây này 1000, giây trước 800 → 200 gói/giây.
 
-**Làm từng bước:** (Terminal 1 giữ `make run`; Terminal 2 chạy controller)
+**Làm từng bước:** (Terminal 1 giữ `make run`; Terminal 2:)
 ```bash
 $ sudo -E python3 controller/detector.py \
     --p4info build/telemetry.p4.p4info.txtpb \
     --bmv2 build/telemetry.json --poll 1.0 --no-mitigation \
     --out logs/realtime.csv
 ```
-Rồi tạo chút traffic để thấy số nhảy (trong mininet CLI): `h1 curl -s srv`.
-→ **Kết quả mong đợi:** mỗi giây in một dòng `pr=... syn/ack=... src=...`; file
-`logs/realtime.csv` có cột `packet_rate` tăng khi có traffic.
+Tạo traffic để thấy số nhảy (trong mininet CLI): `h1 curl -s srv`.
+→ Mỗi giây in `pr=... syn/ack=... src=...`; `logs/realtime.csv` có `packet_rate`.
 
-**Dấu hiệu đã xong (CHECKPOINT 2):** đọc được counter real-time; CSV có timestamp
-+ packet_rate.
-
-**Nếu lỗi:** đọc register báo lỗi → có bản dự phòng qua `simple_switch_CLI`, hoặc
-dùng số cổng làm proxy (xem cảnh báo `[warn]` khi chạy).
+**Dấu hiệu đã xong (CHECKPOINT 2):** đọc counter real-time; CSV có timestamp +
+packet_rate.
 
 ---
 
-# TUẦN 5 — Tạo ra 4 loại traffic trong lab
+# TUẦN 5 — Tạo 4 loại traffic trong lab
 
-**Tuần này làm gì:** tạo được **Normal, Flash Crowd, SYN flood, UDP flood** trong
-mạng ảo, có nhãn rõ ràng — để sau này dạy máy phân biệt.
+**Làm gì:** tạo **Normal, Flash Crowd, SYN flood, UDP flood** trong lab, có nhãn.
 
 **Cần hiểu:**
-- **Normal:** ít người, truy cập đều.
-- **Flash Crowd:** nhiều người **thật** cùng vào (mở đăng ký) — volume cao nhưng
-  hành vi hợp lệ (bắt tay đủ, có phản hồi, nguồn đa dạng, tăng từ từ).
-- **SYN flood / UDP flood:** 2 kiểu tấn công — bơm gói SYN/UDP để làm nghẽn.
-- **threat model:** mô tả rõ "kẻ tấn công làm được gì, không làm được gì".
-- **ground truth:** nhãn thật (loại traffic nào, lúc nào) do bộ sinh traffic ghi
-  lại — để sau chấm điểm máy đoán đúng hay sai.
+- **Normal/Flash:** người thật (bắt tay đủ, có phản hồi). Flash = rất nhiều người
+  thật cùng vào.
+- **SYN/UDP flood:** 2 kiểu tấn công bơm gói làm nghẽn.
+- **threat model:** mô tả kẻ tấn công làm được gì, không làm được gì.
+- **ground truth:** nhãn thật do bộ sinh traffic ghi, để chấm điểm model.
 
-**Làm từng bước:** chạy tự động từng kịch bản:
+**Làm từng bước:**
 ```bash
-$ make run SCENARIO=configs/scenarios/S2.yaml   # Flash Crowd
+$ make run SCENARIO=configs/scenarios/S2.yaml   # Flash
 $ make run SCENARIO=configs/scenarios/S3.yaml   # SYN flood
 $ make run SCENARIO=configs/scenarios/S4.yaml   # UDP flood
-$ cat logs/ground_truth.json                    # xem nhãn + IP tấn công
+$ cat logs/ground_truth.json
 ```
-→ **Kết quả mong đợi:** `ground_truth.json` ghi các pha và IP tấn công; log probe
-cho thấy tỉ lệ thành công **giảm khi bị tấn công (S3/S4)** nhưng **vẫn cao với
-Flash (S2)**.
+→ Success rate giảm khi bị tấn công (S3/S4) nhưng vẫn cao với Flash (S2).
 
-**AN TOÀN (bắt buộc):** mọi traffic tấn công **chỉ chạy trong Mininet cô lập**.
-File `docs/safety_checklist.md` phải được cả 3 người ký trước khi chạy.
-
-**Dấu hiệu đã xong:** 4 loại traffic chạy lặp được, có config + ground truth,
-safety checklist ký đủ.
-
-**Nếu lỗi:** `hping3/iperf3 not found` → `sudo apt-get install hping3 iperf3`.
+**AN TOÀN (bắt buộc):** mọi traffic tấn công chỉ chạy trong Mininet cô lập;
+`docs/safety_checklist.md` cả 3 người ký trước khi chạy.
 
 ---
 
-# TUẦN 6 — Biến traffic thành bảng số liệu (dataset)
+# TUẦN 6 — Dataset, feature, threshold/EWMA
 
-**Tuần này làm gì:** từ số liệu thực, tạo một **bảng dữ liệu có nhãn** (dataset),
-và làm 2 cách phát hiện đơn giản (threshold, EWMA) để so sánh sau.
+**Làm gì:** từ số liệu thực tạo **bảng dữ liệu có nhãn**; làm baseline
+threshold + EWMA.
 
 **Cần hiểu:**
-- **window (cửa sổ 1 giây):** gom traffic mỗi 1 giây thành **1 dòng số liệu**.
-- **feature:** các con số tóm tắt 1 window: tốc độ gói, tỉ lệ ACK/SYN, số nguồn,
-  entropy (độ đa dạng nguồn), độ dốc tăng…
-- **threshold:** đặt ngưỡng cứng — vượt là báo tấn công (đơn giản nhưng báo nhầm
-  Flash Crowd).
-- **EWMA:** ngưỡng tự điều chỉnh theo traffic.
-- **data leakage:** lỗi chia dữ liệu khiến độ chính xác cao giả tạo — phải chia
-  theo **từng lần chạy (run)**, không chia ngẫu nhiên.
+- **window (1 giây):** gom traffic mỗi giây thành 1 dòng dữ liệu.
+- **feature:** con số tóm tắt 1 window (tốc độ gói, tỉ lệ ACK/SYN, số nguồn,
+  entropy, độ dốc tăng).
+- **threshold/EWMA:** ngưỡng cứng / ngưỡng tự điều chỉnh (đơn giản, báo nhầm Flash).
+- **data leakage:** lỗi chia dữ liệu khiến độ chính xác ảo — phải chia theo **run**.
 
-**Làm từng bước:** chạy nhiều lần mỗi kịch bản để gom đủ dữ liệu, ghép thành
-dataset (nhóm viết `ml/build_dataset.py` theo gợi ý trong HANDBOOK kỹ thuật),
-rồi chạy baseline threshold/EWMA.
-
-→ **Kết quả mong đợi:** file `data/uniflash_v01.csv`; biểu đồ cho thấy
-`syn_ack_ratio`, `entropy` **tách được** Flash khỏi DDoS.
-
-**Dấu hiệu đã xong:** dataset có nhãn + data dictionary; đo được **Flash-FPR**
-của threshold (tỉ lệ nó báo nhầm Flash).
+**Dấu hiệu đã xong:** dataset có nhãn + data dictionary; đo được Flash-FPR của
+threshold.
 
 ---
 
-# TUẦN 7 — Dạy máy phân biệt (Machine Learning) — CHECKPOINT 3
+# TUẦN 7 — Máy học (CHECKPOINT 3)
 
-**Tuần này làm gì:** huấn luyện **mô hình máy học** (Random Forest, XGBoost) để
-phân biệt Normal/Flash/DDoS, so với threshold/EWMA.
+**Làm gì:** train Random Forest/XGBoost phân biệt Normal/Flash/DDoS, so với
+threshold/EWMA.
 
 **Cần hiểu:**
-- **Machine Learning:** cho máy xem nhiều ví dụ có nhãn, nó tự học cách đoán.
-- **Random Forest / XGBoost:** 2 loại mô hình "nhiều cây quyết định bỏ phiếu".
-- **Precision / Recall / F1 / FPR:** các thước đo độ chính xác.
-- **Flash-FPR:** tỉ lệ Flash bị đoán nhầm là DDoS — **quan trọng hơn** độ chính
-  xác tổng, vì đó là lỗi hại người dùng thật.
+- **Machine Learning:** cho máy xem nhiều ví dụ có nhãn, nó học cách đoán.
+- **Precision/Recall/F1/FPR:** thước đo độ chính xác.
+- **Flash-FPR:** tỉ lệ Flash bị đoán nhầm DDoS — quan trọng hơn accuracy tổng.
 
 **Làm từng bước:**
 ```bash
 $ python3 ml/train_eval.py --data data/uniflash_v01.csv --out experiments/week7
 $ cat experiments/week7/model_compare.csv
 ```
-→ **Kết quả mong đợi:** bảng so sánh; kỳ vọng threshold/EWMA có **Flash-FPR cao**,
-Random Forest **thấp hơn hẳn** — đây là bằng chứng cho đề tài. Model lưu ở
-`models/rf.pkl`.
+→ threshold/EWMA có Flash-FPR cao, RF thấp hơn hẳn = bằng chứng cho đề tài.
 
-**Dấu hiệu đã xong (CHECKPOINT 3):** có bảng so sánh, chọn được model, **khóa danh
-sách feature**.
-
-**Nếu lỗi:** độ chính xác ≈ 100% → nghi data leakage, kiểm tra có chia theo
-`run_id` không.
+**Dấu hiệu đã xong (CHECKPOINT 3):** bảng so sánh, chọn model, khóa feature.
 
 ---
 
-# TUẦN 8 — Phát hiện theo thời gian thực (online)
+# TUẦN 8 — Phát hiện online
 
-**Tuần này làm gì:** cho model chạy **trực tiếp trong lúc traffic đang chạy**, và
-đo xem phát hiện nhanh cỡ nào, tốn CPU bao nhiêu.
+**Làm gì:** cho model chạy **thời gian thực**; đo detection latency + CPU.
 
 **Cần hiểu:**
-- **online:** xử lý ngay theo thời gian thực (khác "offline" là phân tích file có sẵn).
-- **detection latency:** thời gian từ lúc tấn công bắt đầu → lúc hệ thống phát
-  hiện. **mitigation latency:** từ lúc phát hiện → lúc rule chặn có hiệu lực.
-- **polling:** controller đọc switch bao lâu một lần (nhanh thì phát hiện sớm
-  nhưng tốn CPU — đó là một đánh đổi để nghiên cứu).
+- **online:** xử lý ngay (khác offline là phân tích file có sẵn).
+- **detection latency:** từ lúc tấn công bắt đầu đến lúc phát hiện.
+- **polling:** đọc switch bao lâu một lần (nhanh = phát hiện sớm nhưng tốn CPU).
 
-**Làm từng bước:** chạy scenario có tấn công + detector dùng model, không chặn:
-```bash
-$ make run SCENARIO=configs/scenarios/S3.yaml      # terminal 1
-$ sudo -E python3 controller/detector.py \
-    --p4info build/telemetry.p4.p4info.txtpb --bmv2 build/telemetry.json \
-    --model models/rf.pkl --no-mitigation --out logs/realtime.csv   # terminal 2
-```
-→ **Kết quả mong đợi:** in `DDoS` đúng trong pha tấn công; CSV có cột `pred`, `cpu_pct`.
-
-**Dấu hiệu đã xong:** pipeline online in ra Normal/Flash/DDoS theo thời gian thực;
-có số detection latency và CPU.
+**Làm:** chạy scenario có tấn công + detector dùng model `--model models/rf.pkl
+--no-mitigation`. → in Normal/Flash/DDoS theo thời gian thực.
 
 ---
 
 # TUẦN 9 — Chặn mà không hại người thật (CHECKPOINT 4)
 
-**Tuần này làm gì:** cho controller **thật sự chặn** tấn công, và đo **LSR** (người
-dùng thật còn dùng được dịch vụ không).
+**Làm gì:** controller **thật sự chặn**; đo **LSR**.
 
 **Cần hiểu:**
-- **mitigation:** hành động giảm tấn công — L0 chỉ theo dõi, L1 giới hạn tốc độ,
-  L2 chặn tạm thời (có thời hạn).
-- **LSR (Legitimate Success Rate):** tỉ lệ request của người thật thành công —
-  **càng cao càng tốt**. Đây là thước đo quan trọng nhất của đề tài.
-- **source attribution:** model chỉ nói "có DDoS", cần thêm bước **xác định chặn
-  ai** (nguồn nào). Nếu IP bị giả mạo → chặn theo **loại traffic** (SYN/UDP).
-- **hysteresis:** chỉ đổi mức chặn sau vài window để tránh bật/tắt liên tục.
+- **mitigation:** L0 theo dõi → L1 giới hạn tốc độ → L2 chặn tạm thời (có hạn).
+- **LSR:** tỉ lệ người thật vẫn dùng được dịch vụ (càng cao càng tốt — thước đo
+  quan trọng nhất).
+- **source attribution:** model nói "có DDoS", cần thêm bước **chặn ai**; IP giả
+  mạo → chặn theo loại traffic.
+- **hysteresis:** chỉ đổi mức sau vài window để tránh bật/tắt liên tục.
 
-**Làm từng bước:** chạy kịch bản chính (Flash + DDoS đồng thời) + detector có chặn:
-```bash
-$ make run SCENARIO=configs/scenarios/S5.yaml      # terminal 1
-$ sudo -E python3 controller/detector.py \
-    --p4info build/telemetry.p4.p4info.txtpb --bmv2 build/telemetry.json \
-    --model models/rf.pkl --feedback --out logs/realtime.csv   # terminal 2
-```
-→ **Kết quả mong đợi:** traffic tấn công tới server giảm, nhưng **LSR vẫn cao**
-(người dùng Flash vẫn vào được).
-
-**Dấu hiệu đã xong (CHECKPOINT 4):** rule chặn thật được nạp lên switch; người
-dùng hợp lệ vẫn truy cập được; có log LSR.
+**Làm:** `make run SCENARIO=configs/scenarios/S5.yaml` + detector `--model
+models/rf.pkl --feedback`. → attack giảm nhưng LSR vẫn cao.
 
 ---
 
-# TUẦN 10 — Thí nghiệm chính và thống kê (CHECKPOINT 5)
+# TUẦN 10 — Thí nghiệm chính + thống kê (CHECKPOINT 5)
 
-**Tuần này làm gì:** chạy **toàn bộ ma trận** thí nghiệm (nhiều kịch bản × nhiều
-cách phòng thủ × lặp nhiều lần) và tính số liệu có độ tin cậy.
+**Làm gì:** chạy ma trận S×B×seed, tính số có độ tin cậy.
 
 **Cần hiểu:**
-- **baseline B0–B3:** 4 cách để so sánh — B0 không phòng thủ, B1 threshold, B2
-  model đơn giản, B3 đầy đủ.
-- **chạy lặp:** mỗi tổ hợp chạy ≥10 lần vì một lần có thể may/rủi.
-- **khoảng tin cậy (CI 95%):** cho biết con số trung bình đáng tin cỡ nào.
-- **kiểm định (Mann-Whitney / bootstrap):** chứng minh "B3 tốt hơn B1" không phải
-  do may rủi (p < 0.05).
+- **baseline B0–B3:** B0 không phòng thủ … B3 đầy đủ.
+- **chạy lặp ≥10 lần:** vì một lần có thể may/rủi.
+- **CI 95% / kiểm định:** chứng minh "B3 tốt hơn B1" không phải do may.
 
-**Làm từng bước:**
+**Làm:**
 ```bash
 $ sudo -E python3 experiments/run_matrix.py --seeds 0 1 2 3 4   # chạy qua đêm
 $ python3 analysis/aggregate.py --raw results/raw --out results/summary.csv
 $ python3 analysis/aggregate.py --raw results/raw --compare S5 lsr B1 B3
 ```
-→ **Kết quả mong đợi:** `summary.csv` có trung bình ± CI95; kiểm định in `p < 0.05`
-nếu B3 giữ LSR tốt hơn B1 — kết quả trung tâm của đề tài.
-
-**Dấu hiệu đã xong (CHECKPOINT 5):** có bảng kết quả đầy đủ; khóa feature, không
-thêm công nghệ mới.
+→ `summary.csv` có mean ± CI95; kiểm định in `p<0.05` nếu B3 giữ LSR tốt hơn B1.
 
 ---
 
-# TUẦN 11 — Phân tích, viết báo cáo, demo
+# TUẦN 11 — Phân tích, báo cáo, demo
 
-**Tuần này làm gì:** biến số liệu thành kết luận có bằng chứng, hoàn thiện báo
-cáo + demo.
+**Làm gì:** biến số liệu thành kết luận có bằng chứng; hoàn thiện báo cáo + demo.
 
 **Cần hiểu:**
-- **claim-evidence:** mỗi câu kết luận phải trỏ tới một bảng/hình cụ thể.
-- **limitation / Threats to Validity:** nêu rõ hạn chế (BMv2 không phải phần cứng
-  thật, traffic trong lab, chỉ 2 loại attack) — làm bài **đáng tin hơn**, không
-  phải điểm yếu.
+- **claim-evidence:** mỗi kết luận trỏ tới một bảng/hình.
+- **Threats to Validity:** nêu hạn chế (BMv2 không phải phần cứng thật, traffic
+  lab, 2 loại attack) — làm bài đáng tin hơn.
 
-**Làm từng bước:**
+**Làm:**
 ```bash
 $ python3 analysis/make_figures.py --summary results/summary.csv --scn S5
 ```
-→ **Kết quả mong đợi:** các hình trong thư mục `figures/`. Mỗi câu hỏi nghiên cứu
-(RQ1–RQ4) có một hình/bảng trả lời.
-
-**Kịch bản demo:** Normal → Flash (không chặn) → Attack (chặn) → Flash+Attack
-đồng thời → mitigation → so LSR với baseline.
+**Demo:** Normal → Flash (không chặn) → Attack (chặn) → Flash+Attack → mitigation
+→ so LSR với baseline.
 
 ---
 
-# BẢNG THUẬT NGỮ (gặp từ lạ thì tra ở đây)
+# PHỤ LỤC A — LỖI THƯỜNG GẶP & CÁCH SỬA (quan trọng cho newbie)
+
+| Triệu chứng | Nguyên nhân | Cách sửa |
+| --- | --- | --- |
+| `p4c: command not found` | Chưa cài P4 toolchain | Dùng máy ảo P4 có sẵn (Phần 0.1), đừng tự compile |
+| `make: p4c-bm2-ss: No such file` Error 127 | Như trên | Như trên |
+| `No module named 'mininet.log'` | Chạy sai Python (không có Mininet) | Dùng `make run` (code đã sửa); giữ venv bật; `git pull` lấy bản mới |
+| `'str' object has no attribute 'read'` | Bug cũ trong run_net.py | `git pull` lấy bản đã sửa |
+| `Destination Host Unreachable` khi ping | Bug ARP cũ trong build_topo.py | `git pull` lấy bản đã sửa, chạy lại `make run` |
+| `iperf3: command not found` | Máy ảo thiếu iperf3 | `sudo apt install -y iperf3` |
+| `Address already in use` (port 80) | Server đã chạy sẵn từ make run | Vô hại, bỏ qua |
+| `*** Unknown command: make run` | Gõ `make` trong Mininet CLI | `make` là lệnh shell; chạy ở Terminal thường, không gõ trong `mininet>` |
+| Mininet treo / lỗi "resource busy" | Lần chạy trước chưa dọn | `sudo mn -c` rồi chạy lại |
+| `cannot bind port 50051` | Còn switch cũ | `make clean` hoặc `sudo mn -c` |
+| Paste không được vào Terminal | Terminal dùng phím khác | Dán bằng **Ctrl+Shift+V** (không phải Ctrl+V); hoặc mở chat trong Firefox máy ảo |
+| Shell kẹt ở dấu `>` | Nháy `"` chưa đóng (lỗi dán) | Nhấn **Ctrl+C**, gõ lại từng lệnh (đừng dán cả khối) |
+| Git `Author identity unknown` | Chưa khai tên/email | `git config --global user.name/user.email` (Phần 0.4) |
+| Git `Password authentication is not supported` | Dùng mật khẩu GitHub | Dùng **Personal Access Token** (`ghp_...`) làm password |
+| Máy ảo báo nâng cấp 26.04 | Thông báo của Ubuntu | **Don't Upgrade** — nâng là hỏng P4 |
+| Ổ đĩa đầy giữa lúc cài | Phân vùng chưa nới sau khi tăng ở VMware | `sudo growpart /dev/sda 2 && sudo resize2fs /dev/sda2` |
+| apt lỗi `/cdrom ... no Release file` | Nguồn cài từ đĩa ISO | `sudo mv /etc/apt/sources.list.d/cdrom.sources ~/cdrom.bak` |
+
+**Quy tắc chung khi gặp lỗi:** đọc **dòng cuối** của thông báo lỗi (thường nói rõ
+nhất). Copy dòng đó tra Google hoặc hỏi. Phần lớn lỗi là **thiếu công cụ** hoặc
+**chạy sai môi trường**.
+
+---
+
+# PHỤ LỤC B — BẢNG THUẬT NGỮ (gặp từ lạ tra ở đây)
 
 | Thuật ngữ | Nghĩa dễ hiểu |
 | --- | --- |
 | Packet (gói tin) | Đơn vị dữ liệu nhỏ gửi trên mạng |
 | Flow | Nhóm gói cùng một cuộc kết nối |
 | TCP / UDP | 2 cách gửi dữ liệu; TCP có bắt tay, UDP thì không |
-| SYN / ACK | Các gói trong bắt tay TCP; SYN = mở, ACK = xác nhận |
-| SYN flood | Tấn công gửi nhiều SYN rồi bỏ dở, làm cạn tài nguyên server |
-| UDP flood | Tấn công bơm nhiều gói UDP làm nghẽn băng thông |
-| DDoS | Tấn công từ nhiều máy làm dịch vụ ngừng hoạt động |
+| SYN / ACK | Gói trong bắt tay TCP; SYN = mở, ACK = xác nhận |
+| SYN flood / UDP flood | Tấn công bơm nhiều gói SYN/UDP làm nghẽn |
+| DDoS | Tấn công từ nhiều máy làm dịch vụ ngừng |
 | Flash Crowd | Lưu lượng tăng đột do nhiều người **thật** cùng vào |
 | SDN | Mạng tách "bộ não" (controller) khỏi "tay chân" (switch) |
-| Switch | Thiết bị nối máy và chuyển gói đến đúng nơi |
-| Controller | "Bộ não" chạy trên máy, đọc số liệu và ra lệnh cho switch |
+| Control/Data plane | Nơi ra quyết định / nơi chuyển gói |
+| Switch | Thiết bị nối máy, chuyển gói đến đúng nơi |
+| Controller | "Bộ não" đọc số liệu và ra lệnh cho switch |
 | P4 | Ngôn ngữ lập trình cách switch xử lý gói |
-| BMv2 | Switch phần mềm để chạy thử P4 (không phải phần cứng) |
-| P4Runtime | Đường dây để controller đọc counter / nạp rule xuống switch |
-| Mininet | Công cụ giả lập mạng (máy/switch ảo) trên một máy |
-| OVS | Switch ảo mặc định của Mininet (đề tài thay bằng BMv2) |
+| BMv2 | Switch phần mềm chạy thử P4 (không phải phần cứng) |
+| P4Runtime | Đường dây để controller đọc counter/nạp rule |
+| Mininet | Công cụ giả lập mạng (máy/switch ảo) |
+| OVS | Switch ảo mặc định Mininet (đề tài thay bằng BMv2) |
 | Counter | Bộ đếm gói/byte trong switch (số cộng dồn) |
-| Register | Bộ nhớ nhỏ trong switch để lưu trạng thái |
+| Register | Bộ nhớ nhỏ trong switch lưu trạng thái |
 | Meter | Cơ chế đo/giới hạn tốc độ gói (dùng để chặn) |
-| Rate (tốc độ) | Số gói trên giây = hiệu 2 lần đọc counter / thời gian |
-| Window | Cửa sổ 1 giây để gom gói lại tính feature |
-| Feature | Con số tóm tắt traffic trong 1 window (vd packet_rate) |
-| Entropy | Đo độ đa dạng/phân tán (vd nguồn IP rải đều hay dồn) |
-| EWMA | Trung bình trượt, dùng làm ngưỡng tự điều chỉnh |
-| Threshold | Ngưỡng cứng để báo động (cách đơn giản) |
-| Random Forest / XGBoost | Mô hình máy học phân loại Normal/Flash/DDoS |
-| Precision / Recall / F1 | Thước đo độ chính xác của mô hình |
-| FPR / Flash-FPR | Tỉ lệ báo nhầm; Flash-FPR = tỉ lệ Flash bị báo là DDoS |
-| Mitigation | Hành động giảm tấn công (giới hạn tốc độ / chặn) |
-| Rate-limit | Giới hạn tốc độ thay vì chặn hẳn |
-| Hysteresis | Chỉ đổi mức sau vài window để tránh bật/tắt liên tục |
-| TTL | Thời hạn của một rule chặn (hết hạn tự gỡ) |
-| LSR | Tỉ lệ request của người dùng hợp lệ thành công (càng cao càng tốt) |
+| Rate | Số gói/giây = hiệu 2 lần đọc counter / thời gian |
+| Window | Cửa sổ 1 giây gom gói lại tính feature |
+| Feature | Con số tóm tắt traffic 1 window |
+| Entropy | Đo độ đa dạng/phân tán (vd nguồn IP) |
+| EWMA | Trung bình trượt, làm ngưỡng tự điều chỉnh |
+| Threshold | Ngưỡng cứng để báo động |
+| Random Forest / XGBoost | Mô hình máy học phân loại |
+| Precision/Recall/F1 | Thước đo độ chính xác mô hình |
+| FPR / Flash-FPR | Tỉ lệ báo nhầm; Flash-FPR = Flash bị báo DDoS |
+| Mitigation | Hành động giảm tấn công (giới hạn/chặn) |
+| Hysteresis | Chỉ đổi mức sau vài window, tránh bật/tắt liên tục |
+| TTL | Thời hạn của rule chặn (hết hạn tự gỡ) |
+| LSR | Tỉ lệ người dùng hợp lệ thành công (càng cao càng tốt) |
 | LDR | Tỉ lệ gói hợp lệ bị chặn nhầm (càng thấp càng tốt) |
-| Fairness (Jain/Gini) | Đo mitigation có công bằng giữa các người dùng không |
-| Detection latency | Thời gian từ lúc tấn công bắt đầu đến lúc phát hiện |
-| Baseline (B0–B3) | Các phương án để so sánh: B0 không phòng thủ … B3 đầy đủ |
-| Data leakage | Lỗi chia dữ liệu khiến độ chính xác cao giả tạo |
-| Ground truth | Nhãn thật do bộ sinh traffic ghi, để chấm điểm model |
-| Probe | Máy "người dùng mẫu" đo xem dịch vụ còn dùng được không |
-| Threat model | Mô tả kẻ tấn công làm được gì / không làm được gì |
+| Fairness (Jain/Gini) | Mitigation có công bằng giữa người dùng không |
+| Detection latency | Từ lúc tấn công đến lúc phát hiện |
+| Baseline (B0–B3) | Các phương án so sánh: B0 không phòng thủ … B3 đầy đủ |
+| Data leakage | Lỗi chia dữ liệu khiến độ chính xác ảo |
+| Ground truth | Nhãn thật do bộ sinh traffic ghi |
+| Probe | Máy "người dùng mẫu" đo dịch vụ còn dùng được không |
+| Threat model | Kẻ tấn công làm được gì / không làm được gì |
 | Bottleneck (nút cổ chai) | Chỗ hẹp nhất làm nghẽn cả đường |
+| **iperf3** | Công cụ đo tốc độ/băng thông mạng tối đa (như Speedtest) |
+| **hping3** | Công cụ sinh gói SYN (dùng làm SYN flood trong lab) |
+| **wrk** | Công cụ tạo tải HTTP nhiều kết nối |
+| **venv** | Môi trường ảo Python; máy ảo P4 có `p4dev-python-venv` (giữ bật) |
+| **Personal Access Token (ghp_...)** | "Mật khẩu" để đẩy code lên GitHub |
+| **ping** | Kiểm tra có thông không + độ trễ (ms) |
+| **curl** | Lấy một trang web từ dòng lệnh (kiểm tra dịch vụ) |
+| **tcpdump / Wireshark** | Bắt và xem gói tin trên mạng |
+| **.ova** | File chứa cả một máy ảo (để import vào VMware) |
+| **pcap** | File lưu các gói tin đã bắt được |
 
 ---
 
-# PHỤ LỤC — Cài p4c và BMv2 (cho tuần 3)
+# PHỤ LỤC C — LỆNH HAY DÙNG (bỏ túi)
 
-Chưa cần ở tuần 1–2. Khi tới tuần 3:
-- **Dễ nhất:** tải **P4 tutorial VM** đã cài sẵn mọi thứ, import vào VMware.
-- **Hoặc** chạy script cài tự động của p4lang (mất 1–3 tiếng biên dịch):
-  ```bash
-  $ cd ~ && git clone https://github.com/jafingerhut/p4-guide.git
-  $ cd p4-guide/bin && cat README.md     # chọn script khớp phiên bản Ubuntu
-  ```
-  Cấp máy ảo ≥ 4GB RAM, ≥ 2 CPU, ≥ 20GB trống, chạy lúc rảnh.
+```bash
+# Môi trường
+export P4_UTILS=$HOME/tutorials/utils     # chỉ đường thư viện P4 (nếu cần)
+make test                                 # test offline (38 PASS)
+make build                                # biên dịch P4
+make run                                  # dựng mạng + vào Mininet CLI
+make run SCENARIO=configs/scenarios/S5.yaml   # chạy 1 kịch bản
+make clean                                # dọn
+sudo mn -c                                # dọn Mininet treo
 
-Kẹt chỗ nào cứ hỏi — mỗi tuần làm từ từ, không vội.
+# Trong Mininet CLI
+h1 ping -c3 srv                           # ping qua switch
+h1 curl -s http://10.0.0.100/             # thử web
+h1 iperf3 -c 10.0.0.100 -p 5201 -t 10     # đo tốc độ (srv iperf3 -s -p 5201 & trước)
+exit                                      # thoát Mininet
+
+# Git
+git pull                                  # lấy bản mới nhất từ nhóm
+git add . && git commit -m "mo ta" && git push   # đẩy việc của mình
+```
+
+Kẹt chỗ nào cứ hỏi — mỗi tuần làm từ từ, không vội. Tài liệu này sẽ được bổ sung
+khi nhóm gặp thêm tình huống mới.
