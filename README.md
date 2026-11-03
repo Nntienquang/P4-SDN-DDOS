@@ -27,7 +27,7 @@ Kiểm tra toàn bộ logic phòng thủ bằng unit test và chạy thử pipel
 dữ liệu giả lập — để hiểu hệ thống trước khi dựng Mininet:
 
 ```bash
-make test            # 27 kiểm tra: feature, detector, policy, metrics
+make test            # 67 kiểm tra: feature, detector, policy, metrics, dataset
 make offline-demo    # sinh dữ liệu giả lập -> train model -> bảng so sánh
 ```
 
@@ -91,8 +91,16 @@ python3 analysis/make_figures.py --summary results/summary.csv --scn S5
 
 ## Baseline so sánh
 
-- **B0** không phòng thủ · **B1** static threshold · **B2** model + mitigation
-  đơn giản · **B3** đầy đủ (feedback). Ma trận: S1–S5 × B0–B3, S6 × B1–B3.
+| | Phát hiện | Mitigation |
+| --- | --- | --- |
+| **B0** | — (chỉ ghi log) | không |
+| **B1** | static threshold packet_rate | rate-limit thô mọi SYN/UDP (hạn mức chung) |
+| **B2** | RandomForest | rate-limit thô (như B1) |
+| **B3** | RandomForest | chặn **theo cổng vào** có hành vi tấn công + feedback LSR |
+
+Ma trận: S1–S6 × B0–B3 × seed 10–12 (+ seed 13–14 cho S3–S5). Dataset train dùng
+seed 0–3 riêng. Toàn bộ quy trình: `make collect dataset week6 week7 matrix analyze
+figures`. Kết quả: `docs/BAO_CAO_KET_QUA.md`; lỗi đã sửa: `docs/NHAT_KY_SUA_LOI_tuan4_11.md`.
 
 ## An toàn
 

@@ -38,19 +38,42 @@ def main():
     args = ap.parse_args()
     assert_lab_target(args.server)
 
+    # OPEN-LOOP: request thứ k được bắn đúng lúc t0 + k/rate trong thread riêng,
+    # KHÔNG chờ request trước xong. Nếu chờ tuần tự (closed-loop), khi server
+    # chậm probe gửi ít đi -> pha tấn công bị đếm ít mẫu -> LSR bị thổi phồng.
+    import os
+    import threading
+    os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     url = "http://%s:%d/" % (args.server, args.port)
     interval = 1.0 / args.rate
+    lock = threading.Lock()
+    f = open(args.out, "w", newline="")
+    w = csv.writer(f)
+    w.writerow(["t", "ok", "latency_ms", "wall"])
     t0 = time.monotonic()
-    import os
-    os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
-    with open(args.out, "w", newline="") as f:
-        w = csv.writer(f)
-        w.writerow(["t", "ok", "latency_ms"])
-        while time.monotonic() - t0 < args.duration:
-            ok, lat = one_request(url, args.timeout)
-            w.writerow([round(time.monotonic() - t0, 3), int(ok), round(lat, 2)])
+
+    def fire(k):
+        wall = time.time()
+        ok, lat = one_request(url, args.timeout)
+        with lock:
+            w.writerow([round(k * interval, 3), int(ok), round(lat, 2),
+                        round(wall, 3)])
             f.flush()
-            time.sleep(max(0, interval))
+
+    threads = []
+    k = 0
+    while True:
+        due = t0 + k * interval
+        if due - t0 >= args.duration:
+            break
+        time.sleep(max(0.0, due - time.monotonic()))
+        th = threading.Thread(target=fire, args=(k,), daemon=True)
+        th.start()
+        threads.append(th)
+        k += 1
+    for th in threads:
+        th.join(timeout=args.timeout + 1)
+    f.close()
     print("[probe] xong ->", args.out)
 
 

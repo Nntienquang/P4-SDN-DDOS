@@ -8,8 +8,14 @@
  *   3. Thu counter: tổng packet/byte tới server, SYN, ACK, UDP, và packet
  *      theo từng cổng vào (per-ingress-port) để biết traffic từ nhóm host nào.
  *   4. Ước lượng số nguồn bằng register bitmap (controller đọc + xóa mỗi window).
- *   5. Mitigation: bảng src_filter cho phép controller drop/đánh dấu theo src IP;
- *      meter 2 màu giới hạn tốc độ gói SYN/UDP tới server.
+ *   5. Mitigation (controller nạp entry qua P4Runtime):
+ *      - port_filter : drop / rate-limit theo CỔNG VÀO (không giả mạo được như
+ *                      src IP) -> chặn ĐÚNG host tấn công, tha host hợp lệ.
+ *      - src_filter  : drop / rate-limit theo src IP (khi IP tin được).
+ *      - proto_filter: rate-limit THÔ theo loại gói (SYN / UDP) khi không xác
+ *                      định được nguồn (baseline mitigation đơn giản B1/B2).
+ *      Meter (packets) index 0 = hạn mức CHUNG cho proto_filter; index = cổng
+ *      vào cho rate-limit riêng từng cổng. Gói RED (vượt PIR) bị drop.
  *
  * LƯU Ý: chương trình chạy trong Mininet/BMv2 cô lập, phục vụ phòng thủ.
  * Không claim hiệu năng line-rate từ BMv2.
@@ -24,6 +30,7 @@ const bit<8>  PROTO_UDP = 17;
 /* Số lượng đối tượng — chỉnh theo topology */
 #define MAX_PORTS      16        // số cổng của switch (per-port counter)
 #define SRCBITMAP_SIZE 4096      // register bitmap ước lượng số nguồn
+#define PORT_STATS     4         // mỗi cổng 4 ô: total, syn, ack, udp
 
 /* Chỉ số counter toàn cục (index cố định) */
 const bit<32> C_TOTAL = 0;       // tổng packet/byte tới server
@@ -86,6 +93,7 @@ struct metadata {
     bit<1>  is_udp;
     bit<32> src_hash;
     bit<1>  meter_rate_limit;   // 1 = traffic nghi vấn, áp meter
+    bit<32> meter_idx;          // ô meter dùng (0 = chung, >0 = theo cổng)
 }
 
 struct headers {
@@ -108,6 +116,7 @@ parser MyParser(packet_in packet,
         meta.is_ack = 0;
         meta.is_udp = 0;
         meta.meter_rate_limit = 0;
+        meta.meter_idx = 0;
         transition parse_ethernet;
     }
     state parse_ethernet {
@@ -148,13 +157,15 @@ control MyIngress(inout headers hdr,
 
     /* --- Counters đo lường --- */
     counter(8, CounterType.packets_and_bytes) global_ctr;   // index C_*
-    counter(MAX_PORTS, CounterType.packets_and_bytes) port_ctr;
+    // Theo cổng vào: index = port*PORT_STATS + {C_TOTAL,C_SYN,C_ACK,C_UDP}.
+    // Controller đọc 1 lần (wildcard) -> biết cổng nào gửi SYN mà không ACK.
+    counter(MAX_PORTS * PORT_STATS, CounterType.packets) port_ctr;
 
     /* --- Register bitmap ước lượng số nguồn --- */
     register<bit<1>>(SRCBITMAP_SIZE) src_bitmap;
 
-    /* --- Meter rate-limit (2 màu GREEN/RED) --- */
-    meter(1, MeterType.bytes) syn_udp_meter;
+    /* --- Meter rate-limit (đơn vị gói) --- */
+    meter(MAX_PORTS, MeterType.packets) rl_meter;
 
     action drop() {
         mark_to_drop(standard_metadata);
@@ -174,14 +185,33 @@ control MyIngress(inout headers hdr,
         default_action = drop();
     }
 
-    /* --- Mitigation: lọc theo src IP (controller nạp entry) --- */
-    action mark_limit() { meta.meter_rate_limit = 1; }
+    /* --- Mitigation --- */
+    // rate-limit dùng hạn mức CHUNG (meter index 0)
+    action mark_limit() { meta.meter_rate_limit = 1; meta.meter_idx = 0; }
+    // rate-limit dùng hạn mức RIÊNG của cổng vào
+    action mark_limit_port() {
+        meta.meter_rate_limit = 1;
+        meta.meter_idx = (bit<32>)standard_metadata.ingress_port;
+    }
+
+    table port_filter {
+        key = { standard_metadata.ingress_port: exact; }
+        actions = { drop; mark_limit_port; NoAction; }
+        size = 64;
+        default_action = NoAction();
+    }
 
     table src_filter {
         key = { hdr.ipv4.srcAddr: lpm; }
-        // allow: không làm gì; drop: chặn hẳn; mark_limit: đẩy qua meter
         actions = { drop; mark_limit; NoAction; }
         size = 1024;
+        default_action = NoAction();
+    }
+
+    table proto_filter {
+        key = { meta.is_syn: exact; meta.is_udp: exact; }
+        actions = { mark_limit; NoAction; }
+        size = 4;
         default_action = NoAction();
     }
 
@@ -190,7 +220,7 @@ control MyIngress(inout headers hdr,
 
         /* Phân loại gói cho feature */
         if (hdr.tcp.isValid()) {
-            // ctrl bit: SYN = bit1, ACK = bit4 (đếm từ 0 ở LSB của 6 cờ)
+            // ctrl 6 bit = URG,ACK,PSH,RST,SYN,FIN -> SYN = bit1, ACK = bit4
             if ((hdr.tcp.ctrl & 0b000010) != 0 && (hdr.tcp.ctrl & 0b010000) == 0) {
                 meta.is_syn = 1;
             }
@@ -206,22 +236,26 @@ control MyIngress(inout headers hdr,
              { hdr.ipv4.srcAddr }, (bit<32>)SRCBITMAP_SIZE);
         src_bitmap.write(meta.src_hash, 1);
 
-        /* Đếm toàn cục */
+        /* Đếm toàn cục + theo cổng vào (đếm TRƯỚC mitigation = traffic tới) */
+        bit<32> pbase = ((bit<32>)standard_metadata.ingress_port) * PORT_STATS;
         global_ctr.count(C_TOTAL);
-        if (meta.is_syn == 1) { global_ctr.count(C_SYN); }
-        if (meta.is_ack == 1) { global_ctr.count(C_ACK); }
-        if (meta.is_udp == 1) { global_ctr.count(C_UDP); }
+        port_ctr.count(pbase + C_TOTAL);
+        if (meta.is_syn == 1) { global_ctr.count(C_SYN); port_ctr.count(pbase + C_SYN); }
+        if (meta.is_ack == 1) { global_ctr.count(C_ACK); port_ctr.count(pbase + C_ACK); }
+        if (meta.is_udp == 1) { global_ctr.count(C_UDP); port_ctr.count(pbase + C_UDP); }
 
-        /* Đếm theo cổng vào */
-        port_ctr.count((bit<32>)standard_metadata.ingress_port);
-
-        /* Mitigation theo src IP */
-        src_filter.apply();
+        /* Mitigation: cổng vào -> src IP -> loại gói */
+        if (port_filter.apply().miss) {
+            if (src_filter.apply().miss) {
+                proto_filter.apply();
+            }
+        }
+        if (standard_metadata.egress_spec == 511) { return; }   // đã drop
         if (meta.meter_rate_limit == 1) {
             bit<32> color;
-            syn_udp_meter.execute_meter(0, color);
-            // color==1 (RED) -> vượt rate -> drop gói nghi vấn
-            if (color == 1) {
+            rl_meter.execute_meter(meta.meter_idx, color);
+            // v1model: 0 = GREEN, 1 = YELLOW, 2 = RED. RED (vượt PIR) -> drop
+            if (color == 2) {
                 drop();
                 return;
             }

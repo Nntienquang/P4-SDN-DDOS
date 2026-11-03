@@ -11,3 +11,8 @@ data/*.csv
 __pycache__/
 *.pyc
 .env
+results/dataset_raw/
+results/*.log
+results/smoke/
+mininet/topology.json
+mininet/s1-runtime.json

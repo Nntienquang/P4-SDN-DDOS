@@ -8,6 +8,13 @@ Ví dụ: results/raw/S5_B1_seed0, results/raw/S5_B3_seed0, ...
 Chạy:
   python3 analysis/aggregate.py --raw results/raw --out results/summary.csv
   python3 analysis/aggregate.py --raw results/raw --compare S5 lsr B1 B3
+  python3 analysis/aggregate.py --raw results/raw --compare-all \
+      --stats-out results/stats.csv        # B3 vs B0/B1/B2, mọi scenario, Holm
+
+Ghi chú thống kê: đơn vị lặp là MỘT RUN (seed), không phải window/request
+(các window trong một run phụ thuộc nhau). Với n run mỗi nhóm, Mann-Whitney
+hai phía có p nhỏ nhất = 2/C(2n, n): n=3 -> 0.10, n=5 -> 0.008. Vì vậy báo
+cáo kèm Welch t-test và khoảng tin cậy bootstrap của HIỆU hai nhóm.
 """
 import argparse
 import csv
@@ -22,8 +29,14 @@ sys.path.insert(0, HERE)
 import compute_metrics as CM  # noqa: E402
 
 METRIC_COLS = ["precision", "recall", "f1", "fpr", "flash_fpr",
-               "lsr", "ldr", "lat_p50_ms", "lat_p95_ms",
-               "detection_latency_s", "cpu_mean_pct"]
+               "lsr", "lsr_attack", "lsr_sla", "ldr",
+               "user_sr", "user_sr_attack", "flash_sr", "jain",
+               "lat_p50_ms", "lat_p95_ms",
+               "detection_latency_s", "mitigation_latency_s",
+               "cpu_mean_pct", "infer_ms_mean", "max_rules"]
+# B0 chỉ ghi log (không phòng thủ) -> metric phát hiện/mitigation không có nghĩa
+DETECTION_COLS = {"precision", "recall", "f1", "fpr", "flash_fpr",
+                  "detection_latency_s", "mitigation_latency_s"}
 
 DIR_RE = re.compile(r"^(?P<scn>[^_]+)_(?P<base>B\d)_seed(?P<seed>\d+)$")
 
@@ -32,7 +45,7 @@ def collect(raw_dir):
     """Trả về dict (scn, base) -> {metric: [giá trị theo run]}."""
     groups = {}
     for d in sorted(glob.glob(os.path.join(raw_dir, "*"))):
-        if not os.path.isdir(d):
+        if not os.path.isdir(d) or os.path.exists(os.path.join(d, "FAILED")):
             continue
         m = DIR_RE.match(os.path.basename(d))
         if not m:
@@ -45,6 +58,8 @@ def collect(raw_dir):
         key = (m["scn"], m["base"])
         g = groups.setdefault(key, {c: [] for c in METRIC_COLS})
         for c in METRIC_COLS:
+            if m["base"] == "B0" and c in DETECTION_COLS:
+                continue
             v = res.get(c)
             if v is not None:
                 g[c].append(float(v))
@@ -188,18 +203,99 @@ def holm_bonferroni(pvalues, alpha=0.05):
     return out
 
 
+def welch_t(a, b):
+    """Welch t-test hai phía. scipy nếu có; None nếu không tính được."""
+    try:
+        from scipy.stats import ttest_ind
+        if len(set(a)) <= 1 and len(set(b)) <= 1:
+            return None
+        return float(ttest_ind(a, b, equal_var=False).pvalue)
+    except Exception:
+        return None
+
+
+def bootstrap_diff_ci(a, b, n_boot=4000, seed=0):
+    """CI95 bootstrap của mean(a) - mean(b)."""
+    import random
+    rng = random.Random(seed)
+    if not a or not b:
+        return (None, None)
+    diffs = []
+    for _ in range(n_boot):
+        sa = [a[rng.randrange(len(a))] for _ in a]
+        sb = [b[rng.randrange(len(b))] for _ in b]
+        diffs.append(sum(sa) / len(sa) - sum(sb) / len(sb))
+    diffs.sort()
+    return (diffs[int(0.025 * n_boot)], diffs[int(0.975 * n_boot) - 1])
+
+
+COMPARE_METRICS = ["lsr_attack", "user_sr_attack", "flash_sr", "flash_fpr", "fpr"]
+
+
+def compare_all(groups, out_path, ref="B3", others=("B0", "B1", "B2")):
+    """So sánh ref với từng baseline khác trên mọi scenario × metric.
+    Holm–Bonferroni áp riêng cho từng metric (họ so sánh của metric đó)."""
+    rows = []
+    scns = sorted({s for s, _ in groups})
+    for metric in COMPARE_METRICS:
+        fam = {}
+        for scn in scns:
+            a = groups.get((scn, ref), {}).get(metric, [])
+            for ob in others:
+                b = groups.get((scn, ob), {}).get(metric, [])
+                if len(a) < 2 or len(b) < 2:
+                    continue
+                _, p_mw = mann_whitney_u(a, b)
+                lo, hi = bootstrap_diff_ci(a, b)
+                key = (scn, ob)
+                fam[key] = p_mw
+                rows.append({"metric": metric, "scenario": scn,
+                             "ref": ref, "other": ob,
+                             "n_ref": len(a), "n_other": len(b),
+                             "mean_ref": round(sum(a) / len(a), 4),
+                             "mean_other": round(sum(b) / len(b), 4),
+                             "diff": round(sum(a) / len(a) - sum(b) / len(b), 4),
+                             "diff_ci95_lo": None if lo is None else round(lo, 4),
+                             "diff_ci95_hi": None if hi is None else round(hi, 4),
+                             "p_mannwhitney": round(p_mw, 4),
+                             "p_welch": (None if welch_t(a, b) is None
+                                         else round(welch_t(a, b), 4))})
+        if fam:
+            adj = holm_bonferroni({"%s|%s" % k: v for k, v in fam.items()})
+            for r in rows:
+                k = "%s|%s" % (r["scenario"], r["other"])
+                if r["metric"] == metric and k in adj:
+                    r["p_mw_holm"] = round(adj[k][1], 4)
+    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
+    cols = ["metric", "scenario", "ref", "other", "n_ref", "n_other",
+            "mean_ref", "mean_other", "diff", "diff_ci95_lo", "diff_ci95_hi",
+            "p_mannwhitney", "p_mw_holm", "p_welch"]
+    with open(out_path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=cols)
+        w.writeheader()
+        for r in rows:
+            w.writerow({c: r.get(c) for c in cols})
+    print("Đã ghi kiểm định ->", out_path, "(%d so sánh)" % len(rows))
+    return rows
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--raw", default="results/raw")
     ap.add_argument("--out", default="results/summary.csv")
     ap.add_argument("--compare", nargs=4, metavar=("SCN", "METRIC", "B_A", "B_B"),
                     help="vd: S5 lsr B1 B3")
+    ap.add_argument("--compare-all", action="store_true",
+                    help="B3 vs B0/B1/B2 trên mọi scenario + Holm")
+    ap.add_argument("--stats-out", default="results/stats.csv")
     args = ap.parse_args()
     groups = collect(args.raw)
     if not groups:
         print("Không tìm thấy run nào trong", args.raw)
         return
     write_summary(groups, args.out)
+    if args.compare_all:
+        compare_all(groups, args.stats_out)
 
     if args.compare:
         scn, metric, ba, bb = args.compare

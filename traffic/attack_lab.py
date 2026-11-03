@@ -7,8 +7,11 @@ công cụ phổ biến (hping3, iperf3) với:
   - giới hạn rate và thời lượng bắt buộc,
   - chỉ dùng để KIỂM THỬ hệ thống phòng thủ trong Mininet cô lập.
 
-SYN flood  -> hping3 (rate giới hạn bằng --interval)
-UDP flood  -> iperf3 client UDP với -b (bitrate trần)
+SYN flood  -> hping3 -S (rate giới hạn bằng --interval)
+UDP flood  -> hping3 --udp với payload cố định, rate = mbps quy ra gói/giây.
+              (iperf3 vẫn dùng được qua --udp-tool iperf3, nhưng 1 iperf3
+              server chỉ nhận 1 client một lúc -> nhiều host tấn công cùng
+              lúc sẽ bị từ chối, nên mặc định dùng hping3.)
 
 Nếu công cụ chưa cài, in hướng dẫn thay vì chạy. Mọi tham số rate phải do người
 dùng đặt rõ, không có chế độ "flood tối đa".
@@ -31,10 +34,26 @@ def run_syn(server, pps, duration, port):
         return 1
     # interval micro giây = 1e6 / pps -> giới hạn tốc độ (không flood tối đa)
     interval_us = max(1, int(1_000_000 / max(1, pps)))
-    cmd = ["hping3", "-S", "-p", str(port), "-i", "u%d" % interval_us,
-           "-c", str(int(pps * duration)), server]
+    # 'timeout' chặn cứng thời lượng: hping3 -i uX thường chậm hơn danh
+    # nghĩa, nếu dùng -c (số gói) thì tấn công kéo dài quá pha -> lệch nhãn.
+    cmd = ["timeout", str(int(duration)), "hping3", "-S", "-p", str(port),
+           "-i", "u%d" % interval_us, server]
     print("[attack:syn] rate~%d pps, %ds ->" % (pps, duration), " ".join(cmd))
-    return subprocess.call(cmd)
+    return subprocess.call(cmd, stdout=subprocess.DEVNULL)
+
+
+def run_udp_hping(server, mbps, duration, port, payload=1000):
+    if shutil.which("hping3") is None:
+        print("Chưa cài hping3. Cài: sudo apt-get install hping3")
+        return 1
+    # mỗi gói ~ payload + 42 byte header (UDP+IP+Ethernet)
+    pps = max(1, int(mbps * 1e6 / 8 / (payload + 42)))
+    interval_us = max(1, int(1_000_000 / pps))
+    cmd = ["timeout", str(int(duration)), "hping3", "--udp", "-p", str(port),
+           "-d", str(payload), "-i", "u%d" % interval_us, server]
+    print("[attack:udp] trần %dMbps (~%d pps), %ds ->" % (mbps, pps, duration),
+          " ".join(cmd))
+    return subprocess.call(cmd, stdout=subprocess.DEVNULL)
 
 
 def run_udp(server, mbps, duration, port):
@@ -56,6 +75,7 @@ def main():
     ap.add_argument("--pps", type=int, default=2000, help="syn: gói/giây (trần)")
     ap.add_argument("--mbps", type=int, default=8, help="udp: Mbps trần")
     ap.add_argument("--port", type=int, default=80)
+    ap.add_argument("--udp-tool", choices=["hping3", "iperf3"], default="hping3")
     args = ap.parse_args()
     assert_lab_target(args.server)
     if args.duration <= 0 or args.duration > 600:
@@ -64,7 +84,8 @@ def main():
     if args.type == "syn":
         sys.exit(run_syn(args.server, args.pps, args.duration, args.port))
     else:
-        sys.exit(run_udp(args.server, args.mbps, args.duration, args.port))
+        fn = run_udp_hping if args.udp_tool == "hping3" else run_udp
+        sys.exit(fn(args.server, args.mbps, args.duration, args.port))
 
 
 if __name__ == "__main__":

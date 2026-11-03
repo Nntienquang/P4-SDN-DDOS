@@ -24,11 +24,16 @@ from safety import assert_lab_target
 _stop = threading.Event()
 _lock = threading.Lock()
 _stats = {"sent": 0, "ok": 0}
+_log = []            # (wall, ok, latency_ms) từng request -> LSR của user thật
+_seed = [None]
 
 
 def client_loop(url, timeout, think_mean):
-    rng = random.Random()
+    with _lock:
+        rng = random.Random(None if _seed[0] is None
+                            else _seed[0] * 1000 + len(threading.enumerate()))
     while not _stop.is_set():
+        t_start = time.time()
         try:
             with urllib.request.urlopen(url, timeout=timeout) as r:
                 r.read(256)
@@ -38,6 +43,8 @@ def client_loop(url, timeout, think_mean):
         with _lock:
             _stats["sent"] += 1
             _stats["ok"] += int(ok)
+            _log.append((round(t_start, 3), int(ok),
+                         round((time.time() - t_start) * 1000.0, 1)))
         # think time phân phối mũ -> giống người dùng thật
         _stop.wait(rng.expovariate(1.0 / think_mean))
 
@@ -77,8 +84,12 @@ def main():
     ap.add_argument("--peak", type=int, default=40, help="flash: số client đỉnh")
     ap.add_argument("--think", type=float, default=1.0, help="think time TB (giây)")
     ap.add_argument("--timeout", type=float, default=2.0)
+    ap.add_argument("--seed", type=int, default=None)
+    ap.add_argument("--out", default=None,
+                    help="CSV từng request (wall,ok,latency_ms) để tính LSR/fairness")
     args = ap.parse_args()
     assert_lab_target(args.server)
+    _seed[0] = args.seed
 
     url = "http://%s:%d/" % (args.server, args.port)
     print("[legit:%s] -> %s trong %.0fs" % (args.mode, url, args.duration))
@@ -89,6 +100,13 @@ def main():
     rate = _stats["ok"] / _stats["sent"] if _stats["sent"] else 0
     print("[legit] sent=%d ok=%d success=%.3f" %
           (_stats["sent"], _stats["ok"], rate))
+    if args.out:
+        import csv
+        time.sleep(args.timeout + 0.5)     # chờ request đang bay kết thúc
+        with _lock, open(args.out, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["wall", "ok", "latency_ms"])
+            w.writerows(_log)
 
 
 if __name__ == "__main__":
