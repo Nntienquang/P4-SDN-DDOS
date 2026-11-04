@@ -93,7 +93,7 @@ Máy ảo P4 tự bật một **môi trường ảo Python** tên `(p4dev-python
 pip install -r requirements.txt    # thư viện cho phần phân tích (nếu thiếu)
 make test                          # phải thấy: TẤT CẢ 38 kiểm tra PASS
 ```
-Ra "38 PASS" = phần não hệ thống (phát hiện/chặn/đo) chạy đúng. Chưa cần hiểu sâu.
+Ra "67 PASS" = phần não hệ thống (phát hiện/chặn/đo) chạy đúng. Chưa cần hiểu sâu.
 
 ---
 
@@ -282,6 +282,20 @@ phải đánh bại con số này.
 
 **Làm từng bước:**
 
+*Cách gọn nhất (🟢 máy ảo, ~60 phút, để máy chạy tự động):*
+```bash
+make collect     # S1..S6 × seed 0..3 = 24 lần chạy, tự gom log vào results/dataset_raw/
+make dataset     # gom 24 lần chạy -> data/uniflash_v01.csv
+make week6       # threshold + EWMA -> experiments/week6/baseline_report.md
+```
+Trước khi chạy: tắt chế độ ngủ của **máy thật** (xem Phụ lục A).
+
+> **Nhóm đã đo được:** 2 754 window. Threshold báo nhầm **71%** window Flash,
+> EWMA báo nhầm **94%**. Flash Crowd có tốc độ gói trung vị 1 343 gói/giây, còn
+> CAO hơn DDoS (1 247). Hình: `figures/tuan06/`.
+
+*Cách làm tay từng bước (để hiểu bản chất):*
+
 *Bước 1 — Thu dữ liệu (🟢 máy ảo).* Chạy từng scenario, mỗi lần controller ghi
 `logs/realtime.csv` + `logs/ground_truth.json`. Gom ngay sau mỗi lần chạy:
 ```bash
@@ -333,36 +347,56 @@ cột **Flash-FPR**: threshold/EWMA thường **cao** (báo nhầm flash) — đ
 
 # TUẦN 7 — Máy học (CHECKPOINT 3)
 
-**Làm gì:** train Random Forest/XGBoost phân biệt Normal/Flash/DDoS, so với
-threshold/EWMA.
+**Làm gì:** train RandomForest và Logistic Regression phân biệt "người thật đông"
+với "tấn công", so với threshold/EWMA.
 
 **Cần hiểu:**
 - **Machine Learning:** cho máy xem nhiều ví dụ có nhãn, nó học cách đoán.
-- **Precision/Recall/F1/FPR:** thước đo độ chính xác.
+- **Precision/Recall/F1/FPR:** thước đo độ chính xác (xem Phụ lục B).
 - **Flash-FPR:** tỉ lệ Flash bị đoán nhầm DDoS — quan trọng hơn accuracy tổng.
+- **GroupKFold theo run:** chia dữ liệu thành 5 phần sao cho mỗi **lần chạy**
+  chỉ nằm trọn trong 1 phần. Model luôn bị chấm trên lần chạy nó chưa từng thấy.
+  Nếu chia ngẫu nhiên theo dòng, model "học thuộc" lần chạy → điểm ảo.
+- **feature importance:** feature nào model dựa vào nhiều nhất.
 
 **Làm từng bước:**
 ```bash
-$ python3 ml/train_eval.py --data data/uniflash_v01.csv --out experiments/week7
-$ cat experiments/week7/model_compare.csv
+make week7       # train + đánh giá + lưu models/rf.pkl
+cat experiments/week7/model_report.md
 ```
-→ threshold/EWMA có Flash-FPR cao, RF thấp hơn hẳn = bằng chứng cho đề tài.
 
-**Dấu hiệu đã xong (CHECKPOINT 3):** bảng so sánh, chọn model, khóa feature.
+> **Nhóm đã đo được:** RandomForest bắt 99,8% tấn công và chỉ báo nhầm **1%**
+> Flash (threshold 76%, EWMA 95%). Feature quan trọng nhất là `syn_ack_ratio`
+> (0,35): người thật hoàn tất bắt tay nên có nhiều ACK, SYN flood thì không.
+> Hình: `figures/tuan07/`.
+
+**Dấu hiệu đã xong (CHECKPOINT 3):** có bảng so sánh, chọn RandomForest, có
+`models/rf.pkl`.
 
 ---
 
 # TUẦN 8 — Phát hiện online
 
-**Làm gì:** cho model chạy **thời gian thực**; đo detection latency + CPU.
+**Làm gì:** cho model chạy **thời gian thực** khi traffic đang chảy; đo độ trễ
+phát hiện + CPU.
 
 **Cần hiểu:**
 - **online:** xử lý ngay (khác offline là phân tích file có sẵn).
-- **detection latency:** từ lúc tấn công bắt đầu đến lúc phát hiện.
+- **detection latency:** từ lúc tấn công bắt đầu đến lúc model kêu "DDoS".
 - **polling:** đọc switch bao lâu một lần (nhanh = phát hiện sớm nhưng tốn CPU).
 
-**Làm:** chạy scenario có tấn công + detector dùng model `--model models/rf.pkl
---no-mitigation`. → in Normal/Flash/DDoS theo thời gian thực.
+**Làm từng bước:** Terminal 1: `make run SCENARIO=configs/scenarios/S5.yaml`.
+Terminal 2, ngay khi Terminal 1 in `[run_net] server HTTP:80 ...`:
+```bash
+sudo -E python3 controller/detector.py --p4info build/telemetry.p4.p4info.txtpb \
+  --bmv2 build/telemetry.json --model models/rf.pkl --mitigation none \
+  --out logs/online_s5.csv
+```
+→ Giây 30–50 (chỉ có Flash) in `ok`; giây 50–110 (có tấn công) in `DDoS`.
+
+> **Nhóm đã đo được:** phát hiện sau 1,0–1,7 giây; model đoán mỗi lần ~16 ms;
+> CPU ~2%. Threshold thì kêu "DDoS" ngay từ khi Flash bắt đầu — báo nhầm.
+> Hình: `figures/tuan08/`.
 
 ---
 
@@ -372,33 +406,57 @@ $ cat experiments/week7/model_compare.csv
 
 **Cần hiểu:**
 - **mitigation:** L0 theo dõi → L1 giới hạn tốc độ → L2 chặn tạm thời (có hạn).
-- **LSR:** tỉ lệ người thật vẫn dùng được dịch vụ (càng cao càng tốt — thước đo
+- **LSR:** tỉ lệ request của người thật thành công (càng cao càng tốt — thước đo
   quan trọng nhất).
-- **source attribution:** model nói "có DDoS", cần thêm bước **chặn ai**; IP giả
-  mạo → chặn theo loại traffic.
+- **chặn theo cổng vào:** mỗi máy cắm vào switch qua một cổng. IP nguồn thì kẻ tấn
+  công giả được, cổng vào thì không. Controller xét từng cổng: cổng nào gửi nhiều
+  SYN mà gần như không ACK (không bắt tay đủ), hoặc dồn UDP, thì chặn cổng đó.
+- **chặn thô (coarse):** mọi gói SYN/UDP của mọi người đi chung một "cửa hẹp"
+  300 gói/giây → chặn cả người thật. Dùng để so sánh.
 - **hysteresis:** chỉ đổi mức sau vài window để tránh bật/tắt liên tục.
+- **feedback:** probe đo dịch vụ liên tục; người dùng bắt đầu bị ảnh hưởng thì
+  leo mức chặn ngay.
 
-**Làm:** `make run SCENARIO=configs/scenarios/S5.yaml` + detector `--model
-models/rf.pkl --feedback`. → attack giảm nhưng LSR vẫn cao.
+**Làm từng bước:** Terminal 1: `make run SCENARIO=configs/scenarios/S5.yaml`.
+Terminal 2:
+```bash
+sudo -E python3 controller/detector.py --p4info build/telemetry.p4.p4info.txtpb \
+  --bmv2 build/telemetry.json --model models/rf.pkl \
+  --mitigation targeted --feedback --out logs/mitig_s5.csv
+```
+→ Thấy `L1-ratelimit` → `L2-drop chặn:a1,a2,a3`; khi tấn công dừng, mức tự hạ
+về `L0-monitor`.
+
+> **Nhóm đã đo được:** bắt đầu chặn sau ~2,5 giây; chặn đúng a1–a3, **không host
+> người thật nào bị chặn** trong mọi lần chạy. Hình: `figures/tuan09/`.
 
 ---
 
 # TUẦN 10 — Thí nghiệm chính + thống kê (CHECKPOINT 5)
 
-**Làm gì:** chạy ma trận S×B×seed, tính số có độ tin cậy.
+**Làm gì:** chạy ma trận Scenario × Baseline × seed, tính số có độ tin cậy.
 
 **Cần hiểu:**
-- **baseline B0–B3:** B0 không phòng thủ … B3 đầy đủ.
-- **chạy lặp ≥10 lần:** vì một lần có thể may/rủi.
-- **CI 95% / kiểm định:** chứng minh "B3 tốt hơn B1" không phải do may.
+- **baseline B0–B3:** B0 không phòng thủ · B1 threshold + chặn thô · B2 máy học
+  + chặn thô · B3 máy học + chặn theo cổng + feedback. So B1 với B2 → máy học
+  đóng góp gì; so B2 với B3 → chặn chọn lọc đóng góp gì.
+- **seed:** mỗi seed đổi cường độ traffic ±30%. Seed train (0–3) khác seed chấm
+  điểm (10–14) để không gian lận.
+- **chạy lặp:** một lần chạy có thể may/rủi, nên mỗi ô chạy 3–5 lần.
+- **CI 95%:** khoảng mà giá trị thật nằm trong đó với độ tin cậy 95%.
+- **kiểm định + Holm:** chứng minh "B3 tốt hơn" không phải do may; Holm chỉnh
+  lại khi so sánh nhiều lần cùng lúc.
 
 **Làm:**
 ```bash
-$ sudo -E python3 experiments/run_matrix.py --seeds 0 1 2 3 4   # chạy qua đêm
-$ python3 analysis/aggregate.py --raw results/raw --out results/summary.csv
-$ python3 analysis/aggregate.py --raw results/raw --compare S5 lsr B1 B3
+make matrix                                 # 72 lần chạy, ~3 giờ
+make matrix SCNS="S3 S4 S5" SEEDS="13 14"  # thêm cho đủ 5 lần, ~1 giờ
+make analyze                                # -> results/RESULTS.md
 ```
-→ `summary.csv` có mean ± CI95; kiểm định in `p<0.05` nếu B3 giữ LSR tốt hơn B1.
+
+> **Nhóm đã đo được (LSR khi bị tấn công):** B0 1,5–2,9% · B1/B2 19–37% ·
+> **B3 98,7% (S3), 99,8% (S4), 57,9% (S5)**. Mọi lần chạy B3 đều tốt hơn mọi lần
+> chạy của baseline khác; p < 0,001. Chi tiết: `results/RESULTS.md`.
 
 ---
 
@@ -413,10 +471,13 @@ $ python3 analysis/aggregate.py --raw results/raw --compare S5 lsr B1 B3
 
 **Làm:**
 ```bash
-$ python3 analysis/make_figures.py --summary results/summary.csv --scn S5
+make figures      # 22 hình theo tuần, chú thích trong figures/README.md
 ```
-**Demo:** Normal → Flash (không chặn) → Attack (chặn) → Flash+Attack → mitigation
-→ so LSR với baseline.
+Đọc theo thứ tự: `docs/BAO_CAO_KET_QUA.md` → `docs/HUONG_DAN_ON_TAP.md`.
+
+**Demo (~5 phút):** chạy B3 ở S5 như Tuần 9 → Flash bắt đầu, vẫn `ok` → tấn
+công bắt đầu, `DDoS` → `L2-drop chặn:a1,a2,a3` → tấn công dừng, về `L0`. Rồi mở
+`figures/tuan11/timeline_S5_all.png` để so 4 baseline.
 
 ---
 
@@ -429,11 +490,14 @@ $ python3 analysis/make_figures.py --summary results/summary.csv --scn S5
 | `No module named 'mininet.log'` | Chạy sai Python (không có Mininet) | Dùng `make run` (code đã sửa); giữ venv bật; `git pull` lấy bản mới |
 | `'str' object has no attribute 'read'` | Bug cũ trong run_net.py | `git pull` lấy bản đã sửa |
 | `Destination Host Unreachable` khi ping | Bug ARP cũ trong build_topo.py | `git pull` lấy bản đã sửa, chạy lại `make run` |
-| `iperf3: command not found` | Máy ảo thiếu iperf3 | `sudo apt install -y iperf3` |
+| `iperf3/hping3: command not found` | Máy ảo thiếu công cụ | `sudo apt install -y iperf3 hping3` |
 | apt kẹt `Waiting for cache lock ... held by ... unattended-upgr` | Máy đang tự cập nhật nền, giữ khoá | Chờ 2–5 phút nó tự chạy tiếp; hoặc Ctrl+C rồi `sudo systemctl stop unattended-upgrades` → cài lại. Nếu báo `dpkg interrupted`: `sudo dpkg --configure -a` |
 | `Address already in use` (port 80) | Server đã chạy sẵn từ make run | Vô hại, bỏ qua |
 | `*** Unknown command: make run` | Gõ `make` trong Mininet CLI | `make` là lệnh shell; chạy ở Terminal thường, không gõ trong `mininet>` |
 | Mininet treo / lỗi "resource busy" | Lần chạy trước chưa dọn | `sudo mn -c` rồi chạy lại |
+| Thí nghiệm dài bỗng mất vài giờ, log có khoảng trống | **Máy thật** (laptop/VMware) cho máy ảo ngủ | Tắt chế độ ngủ của máy thật, đừng gập laptop; chạy lại `make matrix` (run hỏng có file `FAILED` sẽ được chạy lại) |
+| Detector báo `mất kết nối switch -> dừng` | Scenario đã xong, mạng đã tắt | Bình thường, không phải lỗi |
+| `Thiếu model models/rf.pkl` | Chưa train | Chạy `make week7` trước `make matrix` |
 | `cannot bind port 50051` | Còn switch cũ | `make clean` hoặc `sudo mn -c` |
 | Paste không được vào Terminal | Terminal dùng phím khác | Dán bằng **Ctrl+Shift+V** (không phải Ctrl+V); hoặc mở chat trong Firefox máy ảo |
 | Shell kẹt ở dấu `>` | Nháy `"` chưa đóng (lỗi dán) | Nhấn **Ctrl+C**, gõ lại từng lệnh (đừng dán cả khối) |
@@ -504,6 +568,18 @@ nhất). Copy dòng đó tra Google hoặc hỏi. Phần lớn lỗi là **thi�
 | **tcpdump / Wireshark** | Bắt và xem gói tin trên mạng |
 | **.ova** | File chứa cả một máy ảo (để import vào VMware) |
 | **pcap** | File lưu các gói tin đã bắt được |
+| **seed** | Số "hạt giống" cho phần ngẫu nhiên; cùng seed = cùng cường độ traffic. Seed train (0–3) khác seed chấm điểm (10–14) |
+| **cổng vào (ingress port)** | Cổng của switch mà gói đi vào; ở switch biên mỗi cổng ≈ một máy. Không giả mạo được như IP nguồn |
+| **port_filter** | Bảng trong P4 chứa luật "cổng X → giới hạn tốc độ / chặn" do controller ghi vào |
+| **chặn thô / chặn chọn lọc** | Thô: mọi gói SYN/UDP chung một hạn mức (hại cả người thật). Chọn lọc: chỉ chặn cổng có hành vi tấn công |
+| **half-open** | Kết nối mới gửi SYN, chưa hoàn tất bắt tay; SYN flood lấp đầy hàng đợi half-open của server |
+| **open-loop probe** | Probe gửi request đúng nhịp, không chờ request trước xong, để đo LSR không bị thiên lệch khi server chậm |
+| **GroupKFold** | Chia dữ liệu thành K phần sao cho mỗi lần chạy chỉ nằm trong 1 phần — chống rò rỉ dữ liệu |
+| **out-of-fold** | Dự đoán cho mỗi dòng dữ liệu bằng model chưa từng thấy lần chạy chứa dòng đó |
+| **CI 95%** | Khoảng tin cậy 95%: ghi "98,7% ± 0,7" nghĩa là giá trị thật rất có thể nằm trong 98,0–99,4% |
+| **Welch t-test / Mann-Whitney** | Hai kiểm định xem hai nhóm có khác nhau thật không; p < 0,05 = khác biệt có ý nghĩa |
+| **Holm** | Cách chỉnh p khi làm nhiều phép so sánh cùng lúc, để tránh "ăn may" một phép |
+| **FAILED** | File đánh dấu một lần chạy hỏng (vd máy ngủ giữa chừng); thống kê tự bỏ qua, `--resume` chạy lại |
 
 ---
 
@@ -512,7 +588,7 @@ nhất). Copy dòng đó tra Google hoặc hỏi. Phần lớn lỗi là **thi�
 ```bash
 # Môi trường
 export P4_UTILS=$HOME/tutorials/utils     # chỉ đường thư viện P4 (nếu cần)
-make test                                 # test offline (38 PASS)
+make test                                 # test offline (67 PASS)
 make build                                # biên dịch P4
 make run                                  # dựng mạng + vào Mininet CLI
 make run SCENARIO=configs/scenarios/S5.yaml   # chạy 1 kịch bản
@@ -524,6 +600,13 @@ h1 ping -c3 srv                           # ping qua switch
 h1 curl -s http://10.0.0.100/             # thử web
 h1 iperf3 -c 10.0.0.100 -p 5201 -t 10     # đo tốc độ (srv iperf3 -s -p 5201 & trước)
 exit                                      # thoát Mininet
+
+# Tuần 5–11 — chạy cả quy trình
+make collect                              # T5–6: 24 lần chạy thu dữ liệu (~60')
+make dataset week6                        # T6: dataset + threshold/EWMA
+make week7                                # T7: train model
+make matrix                               # T8–10: ma trận B0..B3 (~3 giờ)
+make analyze figures                      # T10–11: thống kê + hình
 
 # Tuần 6 — dataset & baseline (chạy nhẹ, không cần testbed sau khi có CSV)
 python3 ml/build_dataset.py --runs logs --run-id run1_S2 --out data/uniflash_v01.csv --append

@@ -135,7 +135,7 @@ vẫn không được, `source_count` dùng proxy số cổng (ghi rõ trong bá
 
 **Mục tiêu:** tạo 4 loại traffic trong lab, có config và ground truth.
 
-**Lệnh (chạy tự động cả kịch bản):**
+**Lệnh (chạy tự động cả kịch bản, mỗi lệnh ~2–2,5 phút):**
 ```bash
 $ make run SCENARIO=configs/scenarios/S2.yaml   # Flash only
 $ make run SCENARIO=configs/scenarios/S3.yaml   # SYN flood
@@ -143,19 +143,34 @@ $ make run SCENARIO=configs/scenarios/S4.yaml   # UDP flood
 $ cat logs/ground_truth.json
 ```
 
-**Kết quả mong đợi:** `ground_truth.json` ghi các pha + `attack_ips`; log probe
-(`logs/probe.csv`) cho thấy success rate giảm khi attack (với S3/S4) nhưng vẫn
-cao với S2 (Flash hợp lệ).
+**Công cụ (đã đổi so với bản đầu):**
+- SYN flood và UDP flood đều dùng **hping3**, bọc bằng `timeout <giây>` để tấn
+  công dừng đúng hết pha. (iperf3 bị bỏ cho UDP: một `iperf3 -s` chỉ nhận 1
+  client một lúc nên 3 host tấn công cùng lúc không chạy được.)
+- Server là `traffic/web_server.py` (listen backlog 128), không phải
+  `python3 -m http.server` (backlog chỉ 5, quá mong manh).
+- Probe chạy **open-loop**: bắn đúng 5 request/giây, không chờ request trước.
+- Mỗi host hợp lệ ghi log từng request vào `logs/legit/<host>_p<pha>.csv`.
 
-**Tự kiểm tra:** vì sao Flash generator phải nhận response hợp lệ (không chỉ gửi)?
-Mở `traffic/legit.py` xem ramp-up; mở `traffic/attack_lab.py` xem rate có trần.
+**Kết quả mong đợi:** `ground_truth.json` ghi các pha + `attack_ips` + `t0`
+(epoch); `logs/probe.csv` có cột `wall`; tỉ lệ `ok` gần 0 trong pha tấn công
+S3/S4, gần 1 với S2.
 
-**Sản phẩm:** 4 loại traffic chạy lặp được; `docs/threat_model.md`;
-`docs/safety_checklist.md` ký đủ 3 người.
+> **Kết quả đã đo (B0, không phòng thủ):** LSR trong pha tấn công 1,5% (S3) và
+> 2,9% (S4); Flash Crowd S2 vẫn được phục vụ 100%. Hình: `figures/tuan05/`.
+
+**Tự kiểm tra:** vì sao Flash generator phải nhận response hợp lệ (không chỉ
+gửi)? Vì sao probe closed-loop làm LSR bị thổi phồng? (xem
+`docs/NHAT_KY_SUA_LOI_tuan4_11.md`, lỗi B6.)
+
+**Sản phẩm:** 4 loại traffic chạy lặp được; `docs/safety_checklist.md` ký đủ.
 
 **An toàn:** mọi script gọi `traffic/safety.py` — đích phải là IP lab private.
 
-**Lỗi thường gặp:** `hping3/iperf3 not found` → `sudo apt-get install hping3 iperf3`.
+**Lỗi thường gặp:**
+- `hping3 not found` → `sudo apt-get install hping3`.
+- probe toàn `ok=0` cả ở S1 → mạng không thông: kiểm tra ARP tĩnh trong
+  `mininet/topology.json` (chạy lại `make topo`).
 
 ---
 
@@ -165,50 +180,57 @@ Mở `traffic/legit.py` xem ramp-up; mở `traffic/attack_lab.py` xem rate có t
 
 **Lệnh:**
 ```bash
-# chạy nhiều run mỗi scenario để có đủ window (ví dụ seed 0..4)
-$ for s in 0 1 2 3 4; do \
-    make run SCENARIO=configs/scenarios/S1.yaml; \
-    cp logs/realtime.csv data/S1_seed$s.csv; done
-# (ghép realtime + ground_truth thành dataset có nhãn — script gợi ý ở dưới)
+$ make collect        # S1..S6 × B0 × seed 0..3 = 24 run, ~60 phút, cần sudo
+$ make dataset        # gom results/dataset_raw/* -> data/uniflash_v01.csv
+$ make week6          # threshold + EWMA -> experiments/week6/baseline_report.md
 ```
 
-**Kết quả mong đợi:** `data/uniflash_v01.csv` với cột theo `DATA_DICTIONARY.md`;
-biểu đồ phân phối feature theo lớp cho thấy `syn_ack_ratio`, `source_entropy`
-tách Flash khỏi DDoS.
+**Gán nhãn:** `ml/build_dataset.py` lấy nhãn từ `ground_truth.json` theo thời
+điểm `wall − t0` (cột `wall` do detector ghi). Không dùng `elapsed`, vì detector
+khởi động lệch vài giây so với scenario. Window sát ranh giới pha được đánh dấu
+`transition=1` và loại khi train. Thứ tự ưu tiên khi chồng pha: ddos > flash > normal.
 
-**Tự kiểm tra:** data leakage xảy ra thế nào với window liền kề? Vì sao nhãn phải
-lấy từ ground truth, không từ threshold đang đánh giá?
+> **Kết quả đã đo:** 2 754 window (2 610 sau khi loại transition). Threshold
+> (515 gói/s) Flash-FPR **0,708**; EWMA **0,938**; cả hai Recall = 1.
+> Flash Crowd có packet_rate trung vị 1 343 gói/s, cao hơn DDoS (1 247).
+> Hình: `figures/tuan06/`.
 
-**Sản phẩm:** `data/uniflash_v01.csv`, `data/DATA_DICTIONARY.md`, Flash-FPR của B1.
+**Tự kiểm tra:** data leakage xảy ra thế nào với window liền kề? Vì sao nhãn
+phải lấy từ ground truth, không từ threshold đang đánh giá? Vì sao seed thu dữ
+liệu (0–3) phải khác seed đánh giá (10–14)?
 
-> Ghép realtime.csv + ground_truth.json thành dataset có nhãn: dùng logic
-> `label_at()` trong `analysis/compute_metrics.py` (gán nhãn theo pha). Nhóm
-> viết một script nhỏ `ml/build_dataset.py` theo mẫu đó (bài tập tuần này).
+**Sản phẩm:** `data/uniflash_v01.csv`, `data/DATA_DICTIONARY.md`,
+`experiments/week6/baseline_report.md`.
 
 ---
 
 ## Tuần 7 — ML baseline (E6) · CHECKPOINT 3
 
-**Mục tiêu:** train LR/RF/XGB, so với threshold/EWMA, chọn model MVP.
+**Mục tiêu:** train LR/RF, so với threshold/EWMA, chọn model MVP.
 
 **Lệnh:**
 ```bash
-$ python3 ml/train_eval.py --data data/uniflash_v01.csv --out experiments/week7
-$ cat experiments/week7/model_compare.csv
+$ make week7          # = python3 ml/train_eval.py --data data/uniflash_v01.csv --out experiments/week7
+$ cat experiments/week7/model_report.md
 ```
 
-**Kết quả mong đợi:** bảng Precision/Recall/F1/FPR/**Flash-FPR**; model lưu ở
-`models/rf.pkl`, `models/lr.pkl`. Kỳ vọng: threshold/EWMA có Flash-FPR cao, RF
-thấp hơn hẳn — bằng chứng cho RQ1, RQ2.
+**Cách đánh giá:** GroupKFold 5 fold **theo run_id**, dự đoán out-of-fold (mỗi
+window được dự đoán bởi model chưa thấy run của nó). Model triển khai
+(`models/rf.pkl`) được train lại trên toàn bộ dataset sau khi đánh giá.
 
-**Tự kiểm tra:** vì sao Flash-FPR quan trọng hơn accuracy tổng? Nếu XGBoost chỉ
-hơn RF 0.3% nhưng nặng hơn nhiều, chọn gì cho online? (xem feature_importance.json)
+> **Kết quả đã đo:** RandomForest Recall 0,998, Flash-FPR **0,010**; LR ngang
+> RF; threshold 0,761, EWMA 0,949. Feature quan trọng nhất: `syn_ack_ratio`
+> (0,35). Hình: `figures/tuan07/`.
 
-**Sản phẩm:** `experiments/week7/model_compare.csv`, confusion/importance,
-model `.pkl`, lý do chọn model + **khóa danh sách feature**.
+**Tự kiểm tra:** vì sao Flash-FPR quan trọng hơn accuracy tổng? LR ngang RF
+nói lên điều gì về dữ liệu lab? (gợi ý: gần như tách tuyến tính theo
+syn_ack_ratio — một hạn chế cần nêu.)
 
-**Lỗi thường gặp:** accuracy ≈ 100% → nghi leakage; kiểm tra có chia theo
-`run_id` không (dataset.py đã làm, nhưng xác nhận dataset có cột run_id đa dạng).
+**Sản phẩm:** `experiments/week7/{model_compare.csv, model_report.md,
+cv_folds.csv, rf_confusion_by_label.csv, feature_importance.json}`, `models/rf.pkl`.
+
+**Lỗi thường gặp:** accuracy ≈ 100% → nghi leakage; kiểm tra đã chia theo `run_id`.
+`Bỏ qua XGBoost` là bình thường (XGBoost tùy chọn).
 
 ---
 
@@ -219,22 +241,22 @@ model `.pkl`, lý do chọn model + **khóa danh sách feature**.
 **Lệnh:**
 ```bash
 # terminal 1: chạy scenario có attack
-$ make run SCENARIO=configs/scenarios/S3.yaml
-# terminal 2: detector dùng model, KHÔNG mitigation (chỉ phát hiện)
+$ make run SCENARIO=configs/scenarios/S5.yaml
+# terminal 2 (ngay khi terminal 1 in "[run_net] server HTTP:80 ..."):
 $ sudo -E python3 controller/detector.py \
     --p4info build/telemetry.p4.p4info.txtpb --bmv2 build/telemetry.json \
-    --model models/rf.pkl --no-mitigation --out logs/realtime.csv
+    --model models/rf.pkl --mitigation none --out logs/online_s5.csv
 ```
 
-**Kết quả mong đợi:** detector in `DDoS` đúng trong pha attack; `logs/realtime.csv`
-có cột `pred`, `cpu_pct`. So `realtime.csv` với `ground_truth.json` để tính
-detection latency.
+**Kết quả mong đợi:** detector in `ok` trong pha Flash (30–50s) và `DDoS` trong
+pha tấn công (50–110s). `realtime.csv` có `pred`, `infer_ms`, `cpu_pct`, `wall`.
 
-**Tự kiểm tra:** detection latency đo từ đâu tới đâu? Polling nhanh hơn (0.5s)
-có trade-off gì về CPU? (chạy lại với `--poll 0.5` và `--poll 2.0`, so sánh)
+> **Kết quả đã đo (ma trận):** trễ phát hiện 1,0–1,7 s; suy luận ~16 ms/window;
+> CPU detector ~2,2%. Hình: `figures/tuan08/`.
 
-**Sản phẩm:** `experiments/week8_latency.csv`, `experiments/week8_resource.csv`,
-`analysis/polling_tradeoff.md`.
+**Tự kiểm tra:** detection latency đo từ đâu tới đâu? Polling nhanh hơn có
+trade-off gì? Vì sao threshold "phát hiện" S5 nhanh hơn (0,6 s)? (gợi ý: nó đã
+báo động sẵn từ pha Flash — đó là báo nhầm, không phải phát hiện nhanh.)
 
 **Lỗi thường gặp:** feature online khác offline → đảm bảo cùng dùng
 `features.compute_features` (detector đã làm vậy).
@@ -245,32 +267,42 @@ có trade-off gì về CPU? (chạy lại với `--poll 0.5` và `--poll 2.0`, s
 
 **Mục tiêu:** controller áp rule lên P4, đo LSR, giảm hại người dùng hợp lệ.
 
+**Ba chế độ mitigation (`--mitigation`):**
+- `none`: chỉ ghi log (B0).
+- `coarse`: rate-limit THÔ mọi gói SYN/UDP chung hạn mức 300 gói/s (B1, B2).
+- `targeted`: chặn THEO CỔNG VÀO có hành vi tấn công (B3). Cổng bị nghi khi
+  SYN ≥ 50/s và ACK/(SYN+1) < 0,5, hoặc UDP ≥ 100/s. L1 = meter 50 gói/s cho
+  cổng đó, L2 = drop. `--feedback` đọc LSR từ `logs/probe.csv` để leo/nới mức.
+
 **Lệnh:**
 ```bash
-# terminal 1: scenario chính
+# terminal 1
 $ make run SCENARIO=configs/scenarios/S5.yaml
-# terminal 2: detector có mitigation đầy đủ (B3)
+# terminal 2 (B3)
 $ sudo -E python3 controller/detector.py \
     --p4info build/telemetry.p4.p4info.txtpb --bmv2 build/telemetry.json \
-    --model models/rf.pkl --feedback --out logs/realtime.csv
-# sau khi xong, tính metric của run:
-$ cp logs/{probe.csv,ground_truth.json} results/raw/S5_B3_seed0/ 2>/dev/null; \
-  mkdir -p results/raw/S5_B3_seed0; cp logs/realtime.csv results/raw/S5_B3_seed0/
-$ python3 analysis/compute_metrics.py --run results/raw/S5_B3_seed0
+    --model models/rf.pkl --mitigation targeted --feedback --out logs/mitig_s5.csv
+```
+Muốn có đủ log để tính metric một run, chạy qua `run_matrix.py` thay vì tay:
+```bash
+$ sudo env "PATH=$PATH" python3 experiments/run_matrix.py \
+    --scenarios S5 --baselines B3 --seeds 99 --out results/demo
+$ python3 analysis/compute_metrics.py --run results/demo/S5_B3_seed99
 ```
 
-**Kết quả mong đợi:** detector lên mức L1/L2 trong pha attack; traffic attack tới
-server giảm; **LSR vẫn cao** (người dùng Flash vẫn truy cập được). `compute_metrics`
-in `lsr`, `ldr`, `detection_latency`.
+**Kết quả mong đợi:** detector lên `L1-ratelimit` rồi `L2-drop`, in
+`chặn:a1,a2,a3`; không host h1–h8 nào bị chặn.
 
-**Tự kiểm tra:** LSR khác Recall thế nào? Vì sao temporary drop (có TTL) tốt hơn
-chặn vĩnh viễn? Mở `mitigation/policy.py` xem hysteresis và cơ chế chặn theo
-nguồn vs theo loại traffic.
+> **Kết quả đã đo:** rule đầu tiên sau 2,1–2,5 s; trên mọi run B3 không host hợp
+> lệ nào bị chặn. Dịch vụ hồi phục không tức thời: các kết nối half-open trên
+> server cần vài giây mới hết. Hình: `figures/tuan09/`.
 
-**Sản phẩm:** `mitigation` chạy; log LSR/latency; sơ đồ state machine L0–L2.
+**Tự kiểm tra:** vì sao chặn theo cổng vào chứ không theo IP nguồn? Vì sao
+counter đếm TRƯỚC bảng lọc? Rate-limit 50 gói/s mỗi cổng có đủ cứu server
+trước SYN flood không? (không — backlog vẫn bị lấp dần, nên cần L2.)
 
-**Lỗi thường gặp:** rule không có hiệu lực → kiểm tra `src_filter` entry ghi
-thành công (xem `logs/p4runtime_s1.txt`).
+**Lỗi thường gặp:** rule không có hiệu lực → xem bảng:
+`echo "table_dump MyIngress.port_filter" | simple_switch_CLI`.
 
 ---
 
@@ -280,23 +312,26 @@ thành công (xem `logs/p4runtime_s1.txt`).
 
 **Lệnh:**
 ```bash
-$ sudo -E python3 experiments/run_matrix.py \
-    --scenarios S1 S2 S3 S4 S5 --baselines B0 B1 B2 B3 --seeds 0 1 2 3 4
-$ python3 analysis/aggregate.py --raw results/raw --out results/summary.csv
-$ python3 analysis/aggregate.py --raw results/raw --compare S5 lsr B1 B3
+$ make matrix                                  # S1..S6 × B0..B3 × seed 10..12, ~3 giờ
+$ make matrix SCNS="S3 S4 S5" SEEDS="13 14"   # thêm n=5 cho kịch bản tấn công, ~1 giờ
+$ make analyze                                 # summary.csv + stats.csv + RESULTS.md
 ```
+`run_matrix.py --resume` bỏ qua run đã xong; run hỏng có file `FAILED` và được
+chạy lại ở lần resume sau.
 
-**Kết quả mong đợi:** `results/summary.csv` có mean ± CI95 mỗi (scenario,baseline);
-kiểm định in `p < 0.05` nếu B3 giữ LSR tốt hơn B1 trên S5 — đây là kết quả
-trung tâm trả lời RQ4.
+**Quan trọng — chống máy ngủ:** tắt chế độ ngủ của **máy thật** (VMware/laptop)
+trước khi chạy dài. Hai lần máy thật suspend máy ảo đã làm hỏng 2 run;
+`systemd-inhibit` trong máy ảo không chặn được việc này.
 
-**Tự kiểm tra:** B0–B3 khác nhau ở biến nào? Vì sao phải chạy lặp? Một hệ F1 cao
-hơn nhưng LSR thấp hơn có chắc tốt hơn không?
+> **Kết quả đã đo:** LSR trong pha tấn công của B3: 98,7% (S3), 99,8% (S4),
+> 57,9% (S5), so với 1,5–2,9% (B0) và 19–37% (B1/B2). 18/18 so sánh B3 với
+> baseline khác tách hoàn toàn; Welch-Holm p < 0,001. Xem `results/RESULTS.md`.
 
-**Sản phẩm:** `results/summary.csv`, bảng raw, config/seed/version mỗi run.
+**Tự kiểm tra:** B0–B3 khác nhau ở biến nào? Vì sao đơn vị lặp là run chứ không
+phải window? Vì sao Mann-Whitney sau Holm không xuống dưới 0,05 dù hai nhóm tách
+hoàn toàn? (n=5 → p nhỏ nhất 0,0079, nhân 9 phép so sánh.)
 
-**Lỗi thường gặp:** ma trận chạy lâu → chạy qua đêm; giảm `--seeds` hoặc bỏ S6
-nếu thiếu thời gian (ghi rõ số run thật).
+**Sản phẩm:** `results/summary.csv`, `results/stats.csv`, `results/RESULTS.md`.
 
 ---
 
@@ -306,23 +341,20 @@ nếu thiếu thời gian (ghi rõ số run thật).
 
 **Lệnh:**
 ```bash
-$ python3 analysis/make_figures.py --summary results/summary.csv --scn S5
-$ python3 analysis/make_figures.py --summary results/summary.csv --scn S3
-# dashboard đơn giản: đọc results/summary.csv bằng Streamlit/Plotly (tùy chọn)
+$ make figures        # figures/fig*.png + figures/tuan04..tuan11/ + figures/README.md
 ```
 
-**Kết quả mong đợi:** `figures/lsr_by_baseline_S5.png`, `figures/tradeoff_S5.png`.
-Mỗi RQ có một hình/bảng trả lời.
+**Kết quả mong đợi:** 22 hình theo tuần kèm chú thích trong `figures/README.md`;
+mỗi RQ có một hình/bảng trả lời (bảng tóm tắt ở `docs/BAO_CAO_KET_QUA.md`).
 
-**Tự kiểm tra (câu hỏi hội đồng):** tại sao không dùng CDN/WAF? BMv2 chậm thì kết
-quả có ý nghĩa không? Novelty thật sự là gì so với Jaqen/Euclid/SDN-DAD?
-(gợi ý trả lời ở mục 20 của đề cương và README).
+**Tự kiểm tra (câu hỏi hội đồng):** xem `docs/HUONG_DAN_ON_TAP.md`.
 
-**Sản phẩm nộp:** báo cáo theo dàn ý (mục 4.2 tài liệu checklist), slide 10–12′,
-video demo, repo có README + `env/versions.txt` + `results/`.
+**Sản phẩm nộp:** báo cáo theo mẫu trường (kết quả lấy từ
+`docs/BAO_CAO_KET_QUA.md`), slide, video demo, repo.
 
-**Kịch bản demo:** Normal → Flash (không chặn) → Attack (chặn) → Flash+Attack
-→ mitigation → so LSR với B1.
+**Kịch bản demo (~5 phút, chạy B3 ở S5 như tuần 9):** Flash bắt đầu → detector
+vẫn `ok` → tấn công bắt đầu → `DDoS` → `L2-drop chặn:a1,a2,a3` → tấn công dừng
+→ rule tự gỡ về L0. Rồi mở `figures/tuan11/timeline_S5_all.png` để so với B0–B2.
 
 ---
 
@@ -338,6 +370,6 @@ video demo, repo có README + `env/versions.txt` + `results/`.
 | 6 | `controller/features.py`, `baseline/detectors.py` | dataset + Flash-FPR của B1 |
 | 7 | `ml/train_eval.py` | bảng so sánh model, chọn model MVP |
 | 8 | `controller/detector.py` (model) | online + detection latency + CPU |
-| 9 | `mitigation/policy.py`, `mitigator.py` | rule thật + LSR |
-| 10 | `experiments/run_matrix.py` | ma trận + CI95 |
-| 11 | `analysis/*` | hình theo 4 trục + báo cáo |
+| 9 | `mitigation/policy.py`, `mitigator.py`, `p4/telemetry.p4` (port_filter) | rule thật + LSR |
+| 10 | `experiments/run_matrix.py`, `analysis/aggregate.py` | ma trận + CI95 + kiểm định |
+| 11 | `analysis/make_figures.py`, `weekly_figures.py` | hình theo tuần + báo cáo |
