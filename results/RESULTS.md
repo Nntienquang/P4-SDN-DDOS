@@ -10,6 +10,10 @@ Mỗi ô: trung bình ± nửa khoảng tin cậy 95% (t-Student) trên các run
 | S3 SYN flood | B1 | 5 | 35.9% ± 5.8 | 35.5% ± 6.6 | 67.8% ± 2.8 | 0.97 ± 0.04 | 3006 ± 144 |
 | S3 SYN flood | B2 | 5 | 37.2% ± 3.1 | 34.9% ± 3.7 | 68.5% ± 1.6 | 0.98 ± 0.02 | 2929 ± 66 |
 | S3 SYN flood | B3 | 5 | 98.7% ± 0.7 | 94.7% ± 0.6 | 99.3% ± 0.3 | 1.00 ± 0.00 | 2102 ± 86 |
+| S3S SYN flood IP giả mạo | B0 | 3 | 1.7% ± 2.9 | 3.2% ± 2.3 | 50.5% ± 2.9 | 0.67 ± 0.25 | 116 ± 151 |
+| S3S SYN flood IP giả mạo | B1 | 3 | 2.1% ± 2.4 | 5.3% ± 2.6 | 51.1% ± 1.2 | 0.91 ± 0.10 | 66 ± 21 |
+| S3S SYN flood IP giả mạo | B2 | 3 | 2.1% ± 1.0 | 4.5% ± 3.6 | 51.1% ± 0.5 | 0.66 ± 0.41 | 63 ± 14 |
+| S3S SYN flood IP giả mạo | B3 | 3 | 89.6% ± 28.4 | 86.1% ± 24.4 | 94.8% ± 14.2 | 1.00 ± 0.00 | 3390 ± 347 |
 | S4 UDP flood | B0 | 5 | 2.9% ± 1.1 | 7.1% ± 0.8 | 51.5% ± 0.6 | 0.97 ± 0.04 | 302 ± 363 |
 | S4 UDP flood | B1 | 5 | 21.9% ± 5.1 | 27.8% ± 1.7 | 61.0% ± 2.6 | 0.97 ± 0.02 | 2874 ± 221 |
 | S4 UDP flood | B2 | 5 | 25.8% ± 4.1 | 27.6% ± 7.8 | 62.9% ± 2.1 | 0.95 ± 0.07 | 2923 ± 248 |
@@ -48,6 +52,10 @@ Mỗi ô: trung bình ± nửa khoảng tin cậy 95% (t-Student) trên các run
 | S3 SYN flood | B1 | 5 | 100.0% ± 0.0 | 92.1% ± 8.7 | 0.9 ± 0.5 | 2.1 ± 0.5 | 0.8 ± 0.0 | 0.00 ± 0.00 | 1.0 ± 0.0 |
 | S3 SYN flood | B2 | 5 | 100.0% ± 0.0 | 99.2% ± 1.3 | 1.5 ± 0.2 | 2.6 ± 0.2 | 2.2 ± 0.0 | 16.39 ± 0.55 | 1.0 ± 0.0 |
 | S3 SYN flood | B3 | 5 | 100.0% ± 0.0 | 99.6% ± 1.1 | 1.0 ± 0.3 | 2.1 ± 0.3 | 2.2 ± 0.1 | 15.99 ± 0.60 | 3.0 ± 0.0 |
+| S3S SYN flood IP giả mạo | B0 | 3 | — | — | — | — | 1.0 ± 0.1 | 0.01 ± 0.00 | 0.0 ± 0.0 |
+| S3S SYN flood IP giả mạo | B1 | 3 | 100.0% ± 0.0 | 95.4% ± 7.1 | 1.3 ± 1.1 | 2.6 ± 1.1 | 0.9 ± 0.0 | 0.00 ± 0.00 | 1.0 ± 0.0 |
+| S3S SYN flood IP giả mạo | B2 | 3 | 100.0% ± 0.0 | 100.0% ± 0.0 | 2.0 ± 0.4 | 3.3 ± 0.4 | 2.8 ± 0.3 | 22.77 ± 2.96 | 1.0 ± 0.0 |
+| S3S SYN flood IP giả mạo | B3 | 3 | 100.0% ± 0.0 | 100.0% ± 0.0 | 1.9 ± 0.4 | 3.1 ± 0.4 | 2.9 ± 0.2 | 22.78 ± 1.80 | 3.0 ± 0.0 |
 | S4 UDP flood | B0 | 5 | — | — | — | — | 0.7 ± 0.1 | 0.00 ± 0.00 | 0.0 ± 0.0 |
 | S4 UDP flood | B1 | 5 | 100.0% ± 0.0 | 95.8% ± 7.8 | 1.2 ± 0.4 | 2.3 ± 0.4 | 0.8 ± 0.2 | 0.00 ± 0.00 | 1.0 ± 0.0 |
 | S4 UDP flood | B2 | 5 | 100.0% ± 0.0 | 99.6% ± 1.1 | 1.5 ± 0.3 | 2.6 ± 0.3 | 2.2 ± 0.2 | 16.58 ± 0.98 | 1.0 ± 0.0 |
@@ -59,13 +67,16 @@ Mỗi ô: trung bình ± nửa khoảng tin cậy 95% (t-Student) trên các run
 
 ### Bảng D — Kiểm định B3 so với từng baseline
 
-Đơn vị = run. Hiệu = mean(B3) − mean(baseline), CI95 bootstrap. p đã hiệu chỉnh Holm trong từng metric. "Tách hoàn toàn" = mọi run của B3 tốt hơn mọi run của baseline (U = 0). Lưu ý: với n run/nhóm, p Mann-Whitney nhỏ nhất có thể đạt là 2/C(2n,n) (n=3 → 0.10; n=5 → 0.0079), nên sau Holm với 9 phép so sánh, MW không thể xuống dưới 0.05 dù hai nhóm tách hoàn toàn; Welch t-test (giả định gần chuẩn) là kiểm định chính, MW là kiểm tra phi tham số bổ trợ.
+Đơn vị = run. Hiệu = mean(B3) − mean(baseline), CI95 bootstrap. p đã hiệu chỉnh Holm trong từng metric, riêng cho họ kịch bản chính (S1–S6) và họ thí nghiệm bổ sung S3S (IP giả mạo). "Tách hoàn toàn" = mọi run của B3 tốt hơn mọi run của baseline (U = 0). Lưu ý: với n run/nhóm, p Mann-Whitney nhỏ nhất có thể đạt là 2/C(2n,n) (n=3 → 0.10; n=5 → 0.0079), nên sau Holm với 9 phép so sánh (họ chính), MW không thể xuống dưới 0.05 dù hai nhóm tách hoàn toàn; Welch t-test (giả định gần chuẩn) là kiểm định chính, MW là kiểm tra phi tham số bổ trợ.
 
 | Metric | Scenario | So với | n | Hiệu (B3−X) | CI95 hiệu | Tách hoàn toàn | p Welch (Holm) | p MW (Holm) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | lsr_attack | S3 | B0 | 5/5 | +0.971 | [0.967, 0.977] | có | < 0.001 | 0.0714 |
 | lsr_attack | S3 | B1 | 5/5 | +0.628 | [0.599, 0.670] | có | < 0.001 | 0.0714 |
 | lsr_attack | S3 | B2 | 5/5 | +0.615 | [0.595, 0.634] | có | < 0.001 | 0.0714 |
+| lsr_attack | S3S | B0 | 3/3 | +0.879 | [0.747, 0.952] | có | 0.016 | 0.2296 |
+| lsr_attack | S3S | B1 | 3/3 | +0.874 | [0.742, 0.947] | có | 0.016 | 0.2296 |
+| lsr_attack | S3S | B2 | 3/3 | +0.874 | [0.742, 0.943] | có | 0.016 | 0.2296 |
 | lsr_attack | S4 | B0 | 5/5 | +0.969 | [0.960, 0.977] | có | < 0.001 | 0.0714 |
 | lsr_attack | S4 | B1 | 5/5 | +0.779 | [0.741, 0.808] | có | < 0.001 | 0.0714 |
 | lsr_attack | S4 | B2 | 5/5 | +0.740 | [0.718, 0.769] | có | < 0.001 | 0.0714 |
@@ -75,6 +86,9 @@ Mỗi ô: trung bình ± nửa khoảng tin cậy 95% (t-Student) trên các run
 | user_sr_attack | S3 | B0 | 5/5 | +0.931 | [0.922, 0.939] | có | < 0.001 | 0.0675 |
 | user_sr_attack | S3 | B1 | 5/5 | +0.592 | [0.556, 0.639] | có | < 0.001 | 0.0675 |
 | user_sr_attack | S3 | B2 | 5/5 | +0.597 | [0.573, 0.621] | có | < 0.001 | 0.0675 |
+| user_sr_attack | S3S | B0 | 3/3 | +0.829 | [0.718, 0.893] | có | 0.012 | 0.3 |
+| user_sr_attack | S3S | B1 | 3/3 | +0.808 | [0.697, 0.873] | có | 0.012 | 0.3 |
+| user_sr_attack | S3S | B2 | 3/3 | +0.816 | [0.705, 0.883] | có | 0.012 | 0.3 |
 | user_sr_attack | S4 | B0 | 5/5 | +0.929 | [0.924, 0.935] | có | < 0.001 | 0.0675 |
 | user_sr_attack | S4 | B1 | 5/5 | +0.722 | [0.709, 0.731] | có | < 0.001 | 0.0675 |
 | user_sr_attack | S4 | B2 | 5/5 | +0.724 | [0.675, 0.772] | có | < 0.001 | 0.0675 |

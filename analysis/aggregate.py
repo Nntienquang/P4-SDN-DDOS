@@ -272,8 +272,16 @@ def compare_all(groups, out_path, ref="B3", others=("B0", "B1", "B2")):
                              "p_welch": None if p_w is None else round(p_w, 6),
                              "separated": int(sep)})
         if fam:
-            adj = holm_bonferroni({"%s|%s" % k: v for k, v in fam.items()})
-            adj_w = holm_bonferroni({"%s|%s" % k: v for k, v in fam_w.items()})
+            # Holm theo HỌ: kịch bản chính và thí nghiệm bổ sung (tên kết thúc
+            # bằng "S", vd S3S = IP giả mạo, thêm sau khi họ chính đã chốt)
+            # được hiệu chỉnh riêng, để thêm thí nghiệm phụ không làm đổi kết
+            # luận của thiết kế chính.
+            adj, adj_w = {}, {}
+            for supp in (False, True):
+                keys = [k for k in fam if k[0].endswith("S") == supp]
+                if keys:
+                    adj.update(holm_bonferroni({"%s|%s" % k: fam[k] for k in keys}))
+                    adj_w.update(holm_bonferroni({"%s|%s" % k: fam_w[k] for k in keys}))
             for r in rows:
                 k = "%s|%s" % (r["scenario"], r["other"])
                 if r["metric"] == metric and k in adj:

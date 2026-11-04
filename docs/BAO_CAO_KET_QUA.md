@@ -14,7 +14,7 @@
 | **RQ1** Đọc telemetry từ data plane P4 theo thời gian thực có khả thi? | Có. Controller đọc counter qua P4Runtime mỗi ~1.13s; CPU detector ≈ 2% | Hình 4.1, 4.2; Bảng C |
 | **RQ2** Phát hiện theo volume (threshold/EWMA) có báo nhầm Flash Crowd? | Có, rất nặng: Flash-FPR 0.76 (threshold) và 0.95 (EWMA) offline; 0.98 online ở S2 | Hình 6.1, 6.3; Bảng 7.1; Bảng B |
 | **RQ3** ML dùng feature hành vi có giảm báo nhầm mà vẫn bắt được tấn công? | Có: RandomForest Flash-FPR 0.010 offline, **0.0** online ở S2 và S5; Recall 1.0 | Hình 7.1, 8.1; Bảng 7.1, B, C |
-| **RQ4** Mitigation chọn lọc có giữ dịch vụ cho người dùng hợp lệ? | Có. LSR trong pha tấn công: **98.7% / 99.8% / 57.9%** (S3/S4/S5) so với 1.5–2.9% khi không phòng thủ và 19–37% khi rate-limit thô | Hình 10.1, 10.2, 11.1; Bảng A, D |
+| **RQ4** Mitigation chọn lọc có giữ dịch vụ cho người dùng hợp lệ? | Có. LSR trong pha tấn công: **98.7% / 99.8% / 57.9%** (S3/S4/S5) so với 1.5–2.9% khi không phòng thủ và 19–37% khi rate-limit thô. Với IP nguồn giả mạo: **89.6%** so với ~2% | Hình 10.1, 10.2, 11.1; Bảng A, D; mục 7.4 |
 
 **Phát hiện quan trọng nhất:** chỉ cải thiện bộ phát hiện (B1 → B2) **không** cải
 thiện trải nghiệm người dùng khi bị tấn công: LSR của B2 ≈ B1 ở cả S3, S4, S5
@@ -50,7 +50,8 @@ syn_ack_ratio, source_count, source_entropy, growth_slope.
 
 **Dữ liệu tách bạch:** dataset train lấy từ **seed 0–3** (24 run, chỉ B0); ma trận
 đánh giá dùng **seed 10–14** chưa từng thấy (96 run: S1, S2, S6 × 3 seed; S3, S4, S5
-× 5 seed; × 4 baseline). Tổng: 120 run hợp lệ, khoảng 5 giờ chạy thực tế.
+× 5 seed; × 4 baseline). Thí nghiệm bổ sung S3S (SYN flood với IP nguồn giả
+mạo, mục 7.4): 12 run. Tổng: 132 run hợp lệ, khoảng 5,5 giờ chạy thực tế.
 
 ## 3. Tuần 4–5 — Telemetry real-time và traffic có nhãn
 
@@ -153,6 +154,35 @@ n = 5 mỗi nhóm (p nhỏ nhất có thể có = 0.0079; nhân 9 phép so sánh
 phải dấu hiệu thiếu khác biệt. Muốn MW đạt p < 0.05 sau Holm cần n ≥ 7 run mỗi
 nhóm.
 
+### 7.4 Thí nghiệm bổ sung — IP nguồn giả mạo (S3S)
+
+Kiểm chứng lập luận "chặn theo cổng vào vẫn đúng khi IP nguồn không tin được".
+S3S giống S3 nhưng 3 host tấn công dùng `hping3 --rand-source`: mỗi gói SYN mang
+một IP nguồn ngẫu nhiên. Phản hồi tới các IP giả bị switch drop (không có route),
+nên mọi traffic vẫn nằm trong Mininet. Chạy B0–B3 × seed 10–12 (n = 3).
+
+| | LSR pha tấn công | Client hợp lệ OK | Trễ mitigation |
+| --- | --- | --- | --- |
+| B0 | 1.7% ± 2.9 | 3.2% ± 2.3 | — |
+| B1 | 2.1% ± 2.4 | 5.3% ± 2.6 | 2.6 s |
+| B2 | 2.1% ± 1.0 | 4.5% ± 3.6 | 3.3 s |
+| **B3** | **89.6% ± 28.4** (76.3 / 96.0 / 96.3) | **86.1% ± 24.4** | 3.1 s |
+
+- **Bộ phát hiện vẫn đúng** dù gặp dữ liệu chưa từng thấy lúc train: số nguồn ước
+  lượng nhảy lên ~580–955 (S3 thường: ~8), nhưng RandomForest vẫn đạt Recall 1.0
+  và FPR 0, chỉ chậm hơn 0.6–0.9 s (trễ phát hiện 1.9–2.0 s so với 1.0–1.5 s ở S3).
+- **B3 vẫn chặn đúng a1, a2, a3** ở cả 3 run, không chặn host hợp lệ nào: cổng
+  vào không bị ảnh hưởng bởi việc giả mạo IP.
+- **Rate-limit thô (B1, B2) mất tác dụng hoàn toàn** khi IP bị giả mạo: chỉ ~2%,
+  so với ~36% ở S3 thường. Giải thích khả dĩ (chưa đo trực tiếp): với IP giả,
+  SYN-ACK của server không tới được ai nên không có RST trả về; các kết nối
+  half-open tồn đọng tới hết timeout, nên hàng đợi của server bị lấp đầy ngay cả
+  với 300 SYN/s lọt qua hạn mức.
+- Kiểm định (họ Holm riêng cho thí nghiệm bổ sung): B3 tách hoàn toàn khỏi
+  B0/B1/B2 ở cả 6 so sánh; Welch-Holm p ≤ 0.016. Với n = 3, Mann-Whitney không
+  thể xuống dưới 0.10.
+- Một run (seed 10) chỉ đạt 76%, nên khoảng tin cậy rộng. Cần thêm seed để thu hẹp.
+
 ## 8. Threats to Validity
 
 **Nội tại**
@@ -169,6 +199,8 @@ nhóm.
   được phát hiện qua khoảng trống trong log, loại bỏ và chạy lại.
 
 **Ngoại tại**
+- *Giả mạo IP mới thử với SYN flood, 3 run* (mục 7.4); chưa thử UDP flood giả
+  mạo, cũng chưa thử kẻ tấn công giả mạo **MAC** hoặc nhiều host sau cùng một cổng.
 - *Chặn theo cổng vào giả định mỗi cổng ≈ một host* (switch biên). Ở switch lõi,
   một cổng gom nhiều người dùng; chặn cổng sẽ gây hại tập thể, cần kết hợp IP
   hoặc flow.
@@ -193,6 +225,7 @@ make dataset week6            # tuần 6
 make week7                    # tuần 7: train + models/rf.pkl
 make matrix                   # tuần 8–10: 72 run, ~3 giờ
 make matrix SCNS="S3 S4 S5" SEEDS="13 14"   # thêm n cho S3–S5, ~1 giờ
+make matrix SCNS="S3S"                      # bổ sung IP giả mạo, ~30 phút
 make analyze figures          # tuần 10–11: bảng + kiểm định + hình
 ```
 

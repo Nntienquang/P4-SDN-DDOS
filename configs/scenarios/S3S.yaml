@@ -1,0 +1,9 @@
+# S3 với IP nguồn GIẢ MẠO ngẫu nhiên (hping3 --rand-source): kiểm chứng chặn theo
+# cổng vào vẫn đúng khi IP nguồn không tin được. Chỉ chạy trong Mininet cô lập.
+name: S3S_syn_flood_spoofed
+duration: 120
+probe_rate: 5
+phases:
+  - {kind: normal, start: 0,  end: 30,  hosts: [h1,h2,h3], clients: 3}
+  - {kind: syn,    start: 30, end: 90,  hosts: [a1,a2,a3], pps: 2000, spoof: true}
+  - {kind: normal, start: 30, end: 120, hosts: [h1,h2,h3], clients: 3}

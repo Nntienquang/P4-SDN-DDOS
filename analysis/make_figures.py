@@ -39,7 +39,8 @@ BASE_COLOR = {"B0": "#2a78d6", "B1": "#eb6834", "B2": "#1baf7a", "B3": "#eda100"
 BASE_NAME = {"B0": "B0 không phòng thủ", "B1": "B1 threshold + RL thô",
              "B2": "B2 ML + RL thô", "B3": "B3 ML + chặn chọn lọc + feedback"}
 SCN_NAME = {"S1": "S1 Normal", "S2": "S2 Flash", "S3": "S3 SYN flood",
-            "S4": "S4 UDP flood", "S5": "S5 Flash+DDoS", "S6": "S6 Nền đổi"}
+            "S4": "S4 UDP flood", "S5": "S5 Flash+DDoS", "S6": "S6 Nền đổi",
+            "S3S": "S3S IP giả mạo"}
 PHASE_FILL = {"ddos": "#e3494822", "flash": "#6250d618"}
 
 plt.rcParams.update({

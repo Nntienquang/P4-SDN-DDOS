@@ -10,6 +10,7 @@ import csv
 import os
 
 SCN_NAME = {"S1": "S1 Normal", "S2": "S2 Flash", "S3": "S3 SYN flood",
+            "S3S": "S3S SYN flood IP giả mạo",
             "S4": "S4 UDP flood", "S5": "S5 Flash+DDoS", "S6": "S6 Nền đổi"}
 
 
@@ -58,7 +59,7 @@ def main():
           "(seed). B0 không phòng thủ nên không có metric phát hiện.", ""]
     pct = {"pct": True}
     num = {"pct": False}
-    md += table(rows, {"S3", "S4", "S5"}, [
+    md += table(rows, {"S3", "S3S", "S4", "S5"}, [
         ("lsr_attack", "LSR probe (pha tấn công)", pct),
         ("user_sr_attack", "Client hợp lệ OK (pha tấn công)", pct),
         ("lsr", "LSR cả run", pct),
@@ -71,7 +72,7 @@ def main():
         ("flash_sr", "User Flash OK", pct),
         ("lsr", "LSR cả run", pct),
     ], "Bảng B — Báo nhầm & Flash Crowd hợp lệ")
-    md += table(rows, {"S3", "S4", "S5"}, [
+    md += table(rows, {"S3", "S3S", "S4", "S5"}, [
         ("recall", "Recall", pct), ("precision", "Precision", pct),
         ("detection_latency_s", "Trễ phát hiện (s)", {"pct": False, "nd": 1}),
         ("mitigation_latency_s", "Trễ mitigation (s)", {"pct": False, "nd": 1}),
@@ -84,10 +85,11 @@ def main():
         st = list(csv.DictReader(open(args.stats)))
         md += ["### Bảng D — Kiểm định B3 so với từng baseline", "",
                "Đơn vị = run. Hiệu = mean(B3) − mean(baseline), CI95 bootstrap. "
-               "p đã hiệu chỉnh Holm trong từng metric. \"Tách hoàn toàn\" = mọi "
+               "p đã hiệu chỉnh Holm trong từng metric, riêng cho họ kịch bản chính "
+               "(S1–S6) và họ thí nghiệm bổ sung S3S (IP giả mạo). \"Tách hoàn toàn\" = mọi "
                "run của B3 tốt hơn mọi run của baseline (U = 0). Lưu ý: với n run/"
                "nhóm, p Mann-Whitney nhỏ nhất có thể đạt là 2/C(2n,n) (n=3 → 0.10; "
-               "n=5 → 0.0079), nên sau Holm với 9 phép so sánh, MW không thể xuống "
+               "n=5 → 0.0079), nên sau Holm với 9 phép so sánh (họ chính), MW không thể xuống "
                "dưới 0.05 dù hai nhóm tách hoàn toàn; Welch t-test (giả định gần "
                "chuẩn) là kiểm định chính, MW là kiểm tra phi tham số bổ trợ.", "",
                "| Metric | Scenario | So với | n | Hiệu (B3−X) | CI95 hiệu | Tách hoàn toàn | p Welch (Holm) | p MW (Holm) |",

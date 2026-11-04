@@ -111,9 +111,11 @@ gian đọc).
 **4. Vì sao chặn theo cổng vào, không theo IP nguồn?**
 IP nguồn giả mạo được rất dễ; cổng vào của switch biên thì không. Ở switch biên,
 mỗi cổng ≈ một máy, nên chặn cổng là chặn đúng máy tấn công.
-*Trung thực:* thí nghiệm của nhóm **không** dùng IP giả mạo (hping3 không có
-`--rand-source`). Lập luận về giả mạo là dựa trên cơ chế, chưa được đo.
-*Bằng chứng:* `mitigation/policy.py`, Hình 9.2.
+*Đã kiểm chứng:* thí nghiệm bổ sung S3S cho attacker dùng `hping3 --rand-source`.
+B3 vẫn chặn đúng a1–a3 và giữ LSR **89,6%**, trong khi rate-limit thô (B1, B2)
+chỉ còn ~2% và không phòng thủ còn 1,7%.
+*Lưu ý khi trả lời:* mới có 3 run và chỉ với SYN flood; chưa thử giả mạo MAC.
+*Bằng chứng:* `docs/BAO_CAO_KET_QUA.md` mục 7.4, Hình 9.2.
 
 **5. Vì sao counter đếm trước khi lọc?**
 Để controller vẫn thấy kẻ tấn công **đang** gửi trong lúc bị chặn. Nếu đếm sau,
@@ -164,7 +166,9 @@ tuyến khi dữ liệu thật phức tạp hơn và cho feature importance. Đ�
 *Bằng chứng:* Hình 7.2.
 
 **14. Model có bắt được tấn công kiểu mới không?**
-Chưa được kiểm chứng. Mới thử SYN và UDP flood. HTTP flood hoàn tất bắt tay sẽ
+Một phần: với SYN flood giả mạo IP (S3S), số nguồn ước lượng nhảy lên ~580–955,
+giá trị model chưa từng thấy lúc train, nhưng model vẫn bắt được 100% (chậm hơn
+0,6–0,9 s). Còn tấn công khác loại thì chưa được kiểm chứng. Mới thử SYN và UDP flood. HTTP flood hoàn tất bắt tay sẽ
 có `syn_ack_ratio` giống người thật và rất có thể **qua mặt** model. Đây là hướng
 phát triển: thêm feature theo flow/tầng ứng dụng.
 

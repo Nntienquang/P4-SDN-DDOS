@@ -74,7 +74,7 @@ Sinh bằng `python3 analysis/weekly_figures.py` (hoặc `make figures`). Mỗi 
 
 ![lsr_attack.png](tuan10/lsr_attack.png)
 
-*Thước đo chính: tỉ lệ request probe thành công TRONG pha tấn công.*
+*Thước đo chính: tỉ lệ request probe thành công TRONG pha tấn công. S3S = SYN flood với IP nguồn giả mạo (thí nghiệm bổ sung, n = 3).*
 
 ![user_sr_attack.png](tuan10/user_sr_attack.png)
 

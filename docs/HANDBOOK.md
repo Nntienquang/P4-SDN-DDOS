@@ -294,7 +294,8 @@ $ python3 analysis/compute_metrics.py --run results/demo/S5_B3_seed99
 `chặn:a1,a2,a3`; không host h1–h8 nào bị chặn.
 
 > **Kết quả đã đo:** rule đầu tiên sau 2,1–2,5 s; trên mọi run B3 không host hợp
-> lệ nào bị chặn. Dịch vụ hồi phục không tức thời: các kết nối half-open trên
+> lệ nào bị chặn. Với IP nguồn giả mạo (kịch bản S3S, `spoof: true`), B3 vẫn
+> chặn đúng a1–a3, LSR 89,6%; rate-limit thô chỉ còn ~2%. Dịch vụ hồi phục không tức thời: các kết nối half-open trên
 > server cần vài giây mới hết. Hình: `figures/tuan09/`.
 
 **Tự kiểm tra:** vì sao chặn theo cổng vào chứ không theo IP nguồn? Vì sao

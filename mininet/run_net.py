@@ -171,16 +171,18 @@ def run_scenario(net, scenario_path, seed=0, jitter=0.0, wait_detector=0.0):
             elif kind == "syn":
                 attack_ips.append(h.IP())
                 h.cmd("python3 %s/traffic/attack_lab.py --type syn --server %s "
-                      "--pps %d --duration %d >/tmp/%s.log 2>&1 &"
-                      % (ROOT, srv_ip, params["pps"], dur, hn))
+                      "--pps %d --duration %d %s>/tmp/%s.log 2>&1 &"
+                      % (ROOT, srv_ip, params["pps"], dur,
+                         "--spoof " if ph.get("spoof") else "", hn))
             elif kind == "udp":
                 attack_ips.append(h.IP())
                 h.cmd("python3 %s/traffic/attack_lab.py --type udp --server %s "
-                      "--mbps %d --duration %d --port 5201 >/tmp/%s.log 2>&1 &"
-                      % (ROOT, srv_ip, params["mbps"], dur, hn))
+                      "--mbps %d --duration %d --port 5201 %s>/tmp/%s.log 2>&1 &"
+                      % (ROOT, srv_ip, params["mbps"], dur,
+                         "--spoof " if ph.get("spoof") else "", hn))
         ground["phases"].append({"kind": kind, "start": ph["start"],
                                  "end": ph["end"], "hosts": hosts,
-                                 "params": params})
+                                 "params": params, "spoof": bool(ph.get("spoof"))})
 
     while time.time() - t0 < duration:
         time.sleep(0.5)

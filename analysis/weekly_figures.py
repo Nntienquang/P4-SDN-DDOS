@@ -437,11 +437,12 @@ def week10_11(summary, raw, week7_dir, outdir):
         return print("[bỏ qua tuần 10–11] thiếu", summary)
     rows = MF.load_summary(summary)
     specs10 = [
-        (["S3", "S4", "S5"], "lsr_attack", "LSR probe trong pha tấn công",
+        (["S3", "S3S", "S4", "S5"], "lsr_attack", "LSR probe trong pha tấn công",
          "LSR trong pha tấn công (mean ± CI95)", "lsr_attack.png",
          ("B0", "B1", "B2", "B3"), (0, 1.05), "%.2f",
-         "Thước đo chính: tỉ lệ request probe thành công TRONG pha tấn công."),
-        (["S3", "S4", "S5"], "user_sr_attack", "Tỉ lệ thành công client hợp lệ",
+         "Thước đo chính: tỉ lệ request probe thành công TRONG pha tấn công. "
+         "S3S = SYN flood với IP nguồn giả mạo (thí nghiệm bổ sung, n = 3)."),
+        (["S3", "S3S", "S4", "S5"], "user_sr_attack", "Tỉ lệ thành công client hợp lệ",
          "Mọi client hợp lệ h1–h8 trong pha tấn công", "user_sr_attack.png",
          ("B0", "B1", "B2", "B3"), (0, 1.05), "%.2f",
          "Thước đo độc lập với feedback: client h1–h8 không được đưa vào vòng "
