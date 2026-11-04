@@ -3,6 +3,21 @@
 Mỗi dòng = một **time window** (mặc định 1 giây) thu từ testbed. Nhãn lấy từ
 `ground_truth.json` của generator, **không** suy ra từ detector đang đánh giá.
 
+## Cách tạo file này (tuần 6)
+
+File `data/uniflash_v01.csv` được sinh bằng `ml/build_dataset.py`, gom nhiều lần
+chạy lại. Mỗi lần chạy để lại một thư mục có `realtime.csv` (controller ghi) +
+`ground_truth.json` (scenario ghi):
+
+```bash
+python3 ml/build_dataset.py --runs results/raw/* --out data/uniflash_v01.csv
+# hoặc một run vừa chạy ở logs/:
+python3 ml/build_dataset.py --runs logs --run-id run1_S2 --out data/uniflash_v01.csv --append
+```
+
+Script gán `label`/`transition` theo pha trong `ground_truth.json` (cùng quy tắc
+với `analysis/compute_metrics.py`), nên nhãn độc lập với detector.
+
 ## Cột định danh / ngữ cảnh
 
 | Cột | Kiểu | Ý nghĩa |

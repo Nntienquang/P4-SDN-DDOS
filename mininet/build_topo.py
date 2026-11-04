@@ -45,7 +45,10 @@ def build(cfg):
         hosts[name] = {
             "ip": "%s/24" % ip,
             "mac": mac(host_id),
-            "commands": [],
+            "commands": [
+                "route add default gw %s.254 dev eth0" % subnet,
+                "arp -i eth0 -s %s.254 %s" % (subnet, mac(sw_mac_base)),
+            ],
         }
         link_bw = server_bw if is_server else bw
         links.append({
@@ -73,10 +76,13 @@ def build(cfg):
     for k in range(cfg.get("n_attack", 3)):
         add_host("a%d" % (k + 1), hid, 50 + k); hid += 1
 
+    # Mọi host cùng subnet /24 -> host ARP TRỰC TIẾP tới đích chứ không qua
+    # gateway. Switch P4 không trả lời ARP, nên phải nạp ARP tĩnh: mọi IP lab
+    # khác -> MAC của switch (ipv4_forward sẽ ghi lại dstAddr đúng host đích).
     gw_mac = mac(sw_mac_base)
     for hname, hinfo in hosts.items():
-        hinfo["commands"] = [
-            "arp -s %s %s" % (peer_ip, gw_mac)
+        hinfo["commands"] += [
+            "arp -i eth0 -s %s %s" % (peer_ip, gw_mac)
             for pname, peer_ip in host_ips.items() if pname != hname
         ]
 

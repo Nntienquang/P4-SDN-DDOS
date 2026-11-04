@@ -1,88 +1,123 @@
 """
 mitigator.py — Dịch kế hoạch từ policy.py thành rule P4Runtime trên switch.
 
-- src_rule drop/mark_limit  -> entry bảng MyIngress.src_filter (match src IP /32)
-- meter_on                  -> cấu hình meter MyIngress.syn_udp_meter (rate RED)
-- remove_rules              -> xóa entry tương ứng (TTL)
+- port_rule drop/mark_limit -> entry MyIngress.port_filter (match cổng vào)
+- src_rule  drop/mark_limit -> entry MyIngress.src_filter (match src IP /32)
+- meter_on                  -> 2 entry MyIngress.proto_filter (SYN, UDP) ->
+                               mark_limit (hạn mức CHUNG, meter index 0)
+- remove_rules              -> xóa các entry tương ứng (TTL / về L0)
 
-Giữ map key -> table_entry để xóa đúng entry khi hết TTL. Thời điểm ghi rule
-được trả về để controller tính mitigation latency.
+Meter rl_meter (đơn vị gói) cấu hình 1 lần lúc khởi tạo qua simple_switch_CLI
+(p4runtime_lib bản tutorial không có WriteMeter):
+  index 0           = hạn mức chung cho rate-limit theo loại gói,
+  index = số cổng   = hạn mức riêng cho một cổng bị rate-limit.
+
+Trả về thời điểm ghi rule đầu tiên để tính mitigation latency.
 """
+import subprocess
 import time
 
+PORT_FILTER = "MyIngress.port_filter"
 SRC_FILTER = "MyIngress.src_filter"
-A_DROP = "MyIngress.drop"
-A_MARK = "MyIngress.mark_limit"
-METER = "MyIngress.syn_udp_meter"
+PROTO_FILTER = "MyIngress.proto_filter"
+METER = "MyIngress.rl_meter"
+ACTIONS = {
+    PORT_FILTER: {"drop": "MyIngress.drop", "mark_limit": "MyIngress.mark_limit_port"},
+    SRC_FILTER: {"drop": "MyIngress.drop", "mark_limit": "MyIngress.mark_limit"},
+}
 
 
 class Mitigator:
-    def __init__(self, sw, p4info_helper, meter_cir_bps=200000, meter_pir_bps=400000):
+    def __init__(self, sw, p4info_helper, global_pps=300, port_pps=50,
+                 max_ports=16, thrift_port=9090):
         self.sw = sw
         self.h = p4info_helper
-        self.meter_cir_bps = meter_cir_bps
-        self.meter_pir_bps = meter_pir_bps
-        self._entries = {}      # key -> table_entry (để xóa)
-        self._meter_set = False
+        self.global_pps = global_pps
+        self.port_pps = port_pps
+        self.max_ports = max_ports
+        self.thrift_port = thrift_port
+        self._entries = {}      # key -> [table_entry, ...]
+        self.n_writes = 0       # số message P4Runtime ghi (chi phí control plane)
+        self._configure_meters()
 
-    def _src_entry(self, ip, action):
-        action_name = A_DROP if action == "drop" else A_MARK
-        return self.h.buildTableEntry(
-            table_name=SRC_FILTER,
-            match_fields={"hdr.ipv4.srcAddr": [ip, 32]},
-            action_name=action_name,
-            action_params={})
+    # ---------- meter ----------
+    def _configure_meters(self):
+        """Đặt rate cho mọi ô meter. simple_switch_CLI: meter_set_rates <name>
+        <idx> <cir>:<burst> <pir>:<burst>, rate tính theo gói/MICRO giây."""
+        lines = []
+        for idx in range(self.max_ports):
+            pps = self.global_pps if idx == 0 else self.port_pps
+            r = pps / 1e6
+            burst = max(1, int(pps / 10))
+            lines.append("meter_set_rates %s %d %.9f:%d %.9f:%d" %
+                         (METER, idx, r, burst, r, burst))
+        try:
+            out = subprocess.run(
+                ["simple_switch_CLI", "--thrift-port", str(self.thrift_port)],
+                input="\n".join(lines) + "\n", capture_output=True, text=True,
+                timeout=10)
+            if "Invalid" in out.stdout or "Error" in out.stdout:
+                print("[warn] meter_set_rates:", out.stdout[-300:])
+            else:
+                print("[mitigation] meter: chung %d pps, theo cổng %d pps" %
+                      (self.global_pps, self.port_pps))
+        except Exception as e:
+            print("[warn] cấu hình meter lỗi:", e)
+
+    # ---------- build entries ----------
+    def _entries_for(self, rule):
+        t = rule["type"]
+        if t == "port_rule":
+            return [self.h.buildTableEntry(
+                table_name=PORT_FILTER,
+                match_fields={"standard_metadata.ingress_port": int(rule["port"])},
+                action_name=ACTIONS[PORT_FILTER][rule["action"]])]
+        if t == "src_rule":
+            return [self.h.buildTableEntry(
+                table_name=SRC_FILTER,
+                match_fields={"hdr.ipv4.srcAddr": [rule["ip"], 32]},
+                action_name=ACTIONS[SRC_FILTER][rule["action"]])]
+        if t == "meter_on":
+            return [self.h.buildTableEntry(
+                table_name=PROTO_FILTER,
+                match_fields={"meta.is_syn": syn, "meta.is_udp": udp},
+                action_name="MyIngress.mark_limit")
+                for syn, udp in ((1, 0), (0, 1))]
+        raise ValueError(t)
+
+    def _delete(self, key):
+        for te in self._entries.pop(key, []):
+            try:
+                self.sw.DeleteTableEntry(te)
+                self.n_writes += 1
+            except Exception as e:
+                print("[warn] xóa rule lỗi:", e)
 
     def apply_plan(self, plan):
         """Thực thi plan (dict từ policy.update()). Trả về thời điểm ghi rule."""
         write_t = None
+        for key in plan.get("remove_rules", []):
+            self._delete(key)
         for rule in plan.get("add_rules", []):
-            if rule["type"] == "src_rule":
-                te = self._src_entry(rule["ip"], rule["action"])
+            key = rule["key"]
+            if key in self._entries:          # đổi action -> xóa rồi ghi lại
+                self._delete(key)
+            written = []
+            for te in self._entries_for(rule):
                 try:
                     self.sw.WriteTableEntry(te)
-                    self._entries[rule["key"]] = te
-                    write_t = time.monotonic()
+                    self.n_writes += 1
+                    written.append(te)
                 except Exception as e:
-                    print("[warn] ghi src_rule lỗi:", e)
-            elif rule["type"] == "meter_on":
-                self._configure_meter()
-                write_t = time.monotonic()
-        for key in plan.get("remove_rules", []):
-            te = self._entries.pop(key, None)
-            if te is not None:
-                try:
-                    self.sw.DeleteTableEntry(te)
-                except Exception as e:
-                    print("[warn] xóa rule lỗi:", e)
+                    print("[warn] ghi rule %s lỗi: %s" % (key, e))
+            if written:
+                self._entries[key] = written
+                write_t = write_t or time.monotonic()
         return write_t
 
-    def _configure_meter(self):
-        """Nạp cấu hình meter 2 tốc độ cho index 0 (gói SYN/UDP nghi vấn).
-
-        Dùng simple_switch_CLI nếu WriteMeter qua P4Runtime không có sẵn.
-        """
-        if self._meter_set:
-            return
-        try:
-            import subprocess
-            # rate theo byte/giây -> simple_switch_CLI meter_set_rates dùng
-            # cặp (info_rate: bytes/microsec, burst_size). Quy đổi đơn giản.
-            cir = self.meter_cir_bps / 8.0 / 1e6
-            pir = self.meter_pir_bps / 8.0 / 1e6
-            cmd = "meter_set_rates %s 0 %f:2000 %f:4000\n" % (
-                METER.split(".")[-1], cir, pir)
-            subprocess.run(["simple_switch_CLI"], input=cmd,
-                           capture_output=True, text=True, timeout=5)
-            self._meter_set = True
-            print("[mitigation] đã bật meter rate-limit SYN/UDP")
-        except Exception as e:
-            print("[warn] cấu hình meter lỗi:", e)
+    def active_keys(self):
+        return sorted(self._entries)
 
     def clear_all(self):
-        for key, te in list(self._entries.items()):
-            try:
-                self.sw.DeleteTableEntry(te)
-            except Exception:
-                pass
-        self._entries.clear()
+        for key in list(self._entries):
+            self._delete(key)

@@ -1,0 +1,22 @@
+{
+  "LogisticRegression": {
+    "packet_rate": 1.3210050568934653,
+    "byte_rate": 1.4946429531012757,
+    "syn_rate": 2.4578463663037673,
+    "udp_rate": 2.273848367611313,
+    "syn_ack_ratio": 2.778585235616926,
+    "source_count": 0.1409571760296857,
+    "source_entropy": 0.25939300213637323,
+    "growth_slope": 0.42004709090206044
+  },
+  "RandomForest": {
+    "packet_rate": 0.20028503595318758,
+    "byte_rate": 0.10290660080733921,
+    "syn_rate": 0.06862904605470425,
+    "udp_rate": 0.05542204459287216,
+    "syn_ack_ratio": 0.3527417027681297,
+    "source_count": 0.09979744068015974,
+    "source_entropy": 0.11863121622827398,
+    "growth_slope": 0.0015869129153334596
+  }
+}

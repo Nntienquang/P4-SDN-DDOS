@@ -16,6 +16,7 @@ Snapshot là dict:
     "total_pkts": int, "total_bytes": int,
     "syn": int, "ack": int, "udp": int,
     "port_pkts": {port_id: int, ...},     # packet theo cổng vào (per-source proxy)
+    "port_syn"/"port_ack"/"port_udp": {port_id: int}  # tuỳ chọn, cho port_rates()
     "src_popcount": int,                  # số bit 1 trong bitmap
     "bitmap_size": int,                   # kích thước bitmap (để ước lượng số nguồn)
   }
@@ -145,3 +146,53 @@ def compute_features(cur, prev, prev_packet_rate=None, recent_rates=None):
 def feature_vector(feat):
     """dict feature -> list theo đúng thứ tự FEATURE_NAMES (cho model)."""
     return [feat[name] for name in FEATURE_NAMES]
+
+
+# ---------------------------------------------------------------------------
+# Feature THEO CỔNG VÀO — dùng cho mitigation có chọn lọc (tuần 9).
+#
+# Ý tưởng: ở switch biên, mỗi cổng vào = một host (hoặc một nhóm host). Cổng
+# vào KHÔNG giả mạo được như src IP. Người dùng thật (kể cả Flash Crowd) hoàn
+# tất handshake -> mỗi SYN kéo theo nhiều gói ACK; SYN flood gửi SYN mà gần như
+# không ACK; UDP flood bơm UDP. Nên xét tỉ lệ theo TỪNG cổng sẽ tách được kẻ
+# tấn công ra khỏi đám đông hợp lệ, kể cả khi tổng volume giống nhau.
+# ---------------------------------------------------------------------------
+def port_rates(cur, prev):
+    """Trả về {port: {"pps","syn","ack","udp"}} (gói/giây) cho window."""
+    dt = cur["t"] - prev["t"]
+    if dt <= 0:
+        dt = 1e-6
+    out = {}
+    keys = ("port_pkts", "port_syn", "port_ack", "port_udp")
+    names = ("pps", "syn", "ack", "udp")
+    ports = set()
+    for k in keys:
+        ports |= set(cur.get(k, {}))
+    for p in ports:
+        rec = {}
+        for k, n in zip(keys, names):
+            c = cur.get(k, {}).get(p, 0)
+            pv = prev.get(k, {}).get(p, 0)
+            rec[n] = max(0, c - pv) / dt
+        out[p] = rec
+    return out
+
+
+def suspect_ports(prates, protected=(), min_syn=50.0, syn_ack_max=0.5,
+                  min_udp=100.0):
+    """Danh sách cổng có hành vi tấn công trong window.
+
+    - SYN flood: syn >= min_syn VÀ ack/(syn+1) < syn_ack_max (SYN không được
+      hoàn tất). Client HTTP hợp lệ có ack/syn ~ 3–10.
+    - UDP flood: udp >= min_udp.
+    protected: cổng không bao giờ chặn (server, probe đo dịch vụ...).
+    """
+    sus = []
+    for p, r in sorted(prates.items()):
+        if p in protected:
+            continue
+        syn_bad = r["syn"] >= min_syn and r["ack"] / (r["syn"] + 1.0) < syn_ack_max
+        udp_bad = r["udp"] >= min_udp
+        if syn_bad or udp_bad:
+            sus.append(p)
+    return sus

@@ -259,20 +259,75 @@ $ cat logs/ground_truth.json
 
 ---
 
-# TUẦN 6 — Dataset, feature, threshold/EWMA
+# TUẦN 6 — Dataset có nhãn + baseline threshold/EWMA
 
-**Làm gì:** từ số liệu thực tạo **bảng dữ liệu có nhãn**; làm baseline
-threshold + EWMA.
+**Làm gì:** biến số liệu thu ở Tuần 4–5 thành **một bảng dữ liệu có nhãn**, rồi
+làm 2 baseline đơn giản (threshold + EWMA) và **đo Flash-FPR** — bằng chứng cho
+thấy baseline báo nhầm "đông người thật" thành "tấn công". Tuần 7 máy học sẽ
+phải đánh bại con số này.
 
 **Cần hiểu:**
 - **window (1 giây):** gom traffic mỗi giây thành 1 dòng dữ liệu.
 - **feature:** con số tóm tắt 1 window (tốc độ gói, tỉ lệ ACK/SYN, số nguồn,
   entropy, độ dốc tăng).
-- **threshold/EWMA:** ngưỡng cứng / ngưỡng tự điều chỉnh (đơn giản, báo nhầm Flash).
-- **data leakage:** lỗi chia dữ liệu khiến độ chính xác ảo — phải chia theo **run**.
+- **nhãn (label):** mỗi window là `normal` / `flash` / `ddos`, lấy từ
+  `ground_truth.json` (pha nào đang chạy) — **không** suy từ detector.
+- **transition:** window nằm đúng lúc chuyển pha (nửa normal nửa attack) → đánh
+  dấu để **loại khi train** cho đỡ nhiễu.
+- **threshold/EWMA:** ngưỡng cứng / ngưỡng tự điều chỉnh (đơn giản, hay báo nhầm
+  Flash).
+- **Flash-FPR:** tỉ lệ window Flash bị báo nhầm thành DDoS (càng thấp càng tốt).
+- **data leakage:** lỗi chia dữ liệu khiến độ chính xác ảo — phải chia theo
+  **run_id** (lần chạy), không chia ngẫu nhiên theo dòng.
 
-**Dấu hiệu đã xong:** dataset có nhãn + data dictionary; đo được Flash-FPR của
-threshold.
+**Làm từng bước:**
+
+*Bước 1 — Thu dữ liệu (🟢 máy ảo).* Chạy từng scenario, mỗi lần controller ghi
+`logs/realtime.csv` + `logs/ground_truth.json`. Gom ngay sau mỗi lần chạy:
+```bash
+# ví dụ sau khi chạy xong scenario S2 (flash):
+python3 ml/build_dataset.py --runs logs --run-id run1_S2 \
+    --out data/uniflash_v01.csv --append
+# lặp cho S1 (normal), S3 (syn), S4 (udp), S5 (flash+ddos)... đổi --run-id
+```
+Hoặc nếu đã có sẵn nhiều thư mục run (vd `results/raw/`):
+```bash
+python3 ml/build_dataset.py --runs results/raw/* --out data/uniflash_v01.csv
+```
+→ In ra mỗi run có bao nhiêu window, phân bố nhãn. Cần có **cả flash lẫn ddos**
+mới đo được Flash-FPR.
+
+*Bước 2 — Đánh giá baseline (chạy đâu cũng được, kể cả laptop):*
+```bash
+python3 baseline/eval_baseline.py --data data/uniflash_v01.csv --out experiments/week6
+# hoặc gọn: make week6
+```
+→ In bảng so sánh + ghi `experiments/week6/baseline_report.md` và `.csv`. Nhìn
+cột **Flash-FPR**: threshold/EWMA thường **cao** (báo nhầm flash) — đúng điều cần.
+
+**Mẹo cho máy yếu (nhớ thiết bị nhóm có giới hạn):**
+- Mỗi scenario chỉ cần chạy **60–120 giây**, lặp 2–3 lần (đổi seed) là đủ. Không
+  cần chạy dài.
+- Chạy **từng scenario một**, đóng Wireshark/Firefox khi đang thu để BMv2 khỏi
+  tranh CPU.
+- Rate tấn công để **vừa phải** (BMv2 chậm, chỉ cần vượt ngưỡng là thấy hiệu quả).
+- `build_dataset.py` và `eval_baseline.py` **chỉ xử lý file CSV** (thuần Python,
+  không cần pandas) → có thể **copy `logs/*.csv` + `ground_truth.json` sang
+  laptop** 🔴 rồi gom/đánh giá offline cho nhẹ máy ảo.
+
+**Dấu hiệu đã xong:**
+1. `data/uniflash_v01.csv` có đủ nhãn normal/flash/ddos.
+2. `docs`/`data/DATA_DICTIONARY.md` mô tả từng cột (đã có sẵn).
+3. `experiments/week6/baseline_report.md` có con số **Flash-FPR** của threshold &
+   EWMA (sẽ cao — đó là điểm yếu để tuần 7 vượt qua).
+
+**Nếu lỗi:**
+- `Dataset rỗng sau khi loại transition` → file chỉ toàn window chuyển pha; chạy
+  scenario dài hơn một chút.
+- `chưa đo được Flash-FPR` → dataset chưa có window `flash`; chạy thêm scenario
+  S2 rồi `--append`.
+- Thiếu cột feature → `realtime.csv` không phải do `controller/detector.py` sinh;
+  chạy lại Tuần 4.
 
 ---
 
@@ -375,6 +430,7 @@ $ python3 analysis/make_figures.py --summary results/summary.csv --scn S5
 | `'str' object has no attribute 'read'` | Bug cũ trong run_net.py | `git pull` lấy bản đã sửa |
 | `Destination Host Unreachable` khi ping | Bug ARP cũ trong build_topo.py | `git pull` lấy bản đã sửa, chạy lại `make run` |
 | `iperf3: command not found` | Máy ảo thiếu iperf3 | `sudo apt install -y iperf3` |
+| apt kẹt `Waiting for cache lock ... held by ... unattended-upgr` | Máy đang tự cập nhật nền, giữ khoá | Chờ 2–5 phút nó tự chạy tiếp; hoặc Ctrl+C rồi `sudo systemctl stop unattended-upgrades` → cài lại. Nếu báo `dpkg interrupted`: `sudo dpkg --configure -a` |
 | `Address already in use` (port 80) | Server đã chạy sẵn từ make run | Vô hại, bỏ qua |
 | `*** Unknown command: make run` | Gõ `make` trong Mininet CLI | `make` là lệnh shell; chạy ở Terminal thường, không gõ trong `mininet>` |
 | Mininet treo / lỗi "resource busy" | Lần chạy trước chưa dọn | `sudo mn -c` rồi chạy lại |
@@ -468,6 +524,11 @@ h1 ping -c3 srv                           # ping qua switch
 h1 curl -s http://10.0.0.100/             # thử web
 h1 iperf3 -c 10.0.0.100 -p 5201 -t 10     # đo tốc độ (srv iperf3 -s -p 5201 & trước)
 exit                                      # thoát Mininet
+
+# Tuần 6 — dataset & baseline (chạy nhẹ, không cần testbed sau khi có CSV)
+python3 ml/build_dataset.py --runs logs --run-id run1_S2 --out data/uniflash_v01.csv --append
+python3 ml/build_dataset.py --runs results/raw/* --out data/uniflash_v01.csv
+make week6                                # đánh giá threshold/EWMA -> Flash-FPR
 
 # Git
 git pull                                  # lấy bản mới nhất từ nhóm
