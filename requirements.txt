@@ -7,5 +7,6 @@ scipy>=1.7
 psutil>=5.8
 PyYAML>=5.4
 # tùy chọn:
+# python-docx>=1.1   -> make report-docx (xuất báo cáo Word)
 # xgboost>=1.5
 # grpcio, protobuf  -> thường đã có sẵn trong P4 tutorial VM

@@ -291,7 +291,7 @@ def week7(week7_dir, outdir):
         labels = [r[0] for r in rows[1:] if r[0] in ("normal", "flash", "ddos")]
         order = [l for l in ("normal", "flash", "ddos") if l in labels]
         data = {r[0]: [int(x) for x in r[1:]] for r in rows[1:] if r[0] in order}
-        fig, ax = plt.subplots(figsize=(4.8, 3.4))
+        fig, ax = plt.subplots(figsize=(6.4, 3.6))
         mat = [[data[l][0], data[l][1]] for l in order]
         ax.imshow([[v / max(1, sum(row)) for v in row] for row in mat],
                   cmap="Blues", vmin=0, vmax=1, aspect="auto")
@@ -306,7 +306,7 @@ def week7(week7_dir, outdir):
         ax.set_yticks(range(len(order)))
         ax.set_yticklabels([LABEL_NAME[l] for l in order])
         ax.grid(False)
-        ax.set_title("Ma trận nhầm lẫn RandomForest (out-of-fold)", loc="left")
+        ax.set_title("Ma trận nhầm lẫn RF (out-of-fold)", loc="left")
         save(fig, outdir, 7, "confusion_rf.png",
              "Ma trận nhầm lẫn theo nhãn chi tiết: gần như toàn bộ Flash Crowd "
              "được giữ là lành tính.")

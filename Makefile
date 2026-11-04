@@ -9,7 +9,7 @@ P4SRC    := p4/telemetry.p4
 
 export P4_UTILS
 
-.PHONY: all build topo run clean test offline-demo dataset week6 collect week7 matrix analyze figures
+.PHONY: all build topo run clean test offline-demo dataset week6 collect week7 matrix analyze figures report-docx
 
 all: build topo
 
@@ -79,6 +79,10 @@ figures:
 	python3 analysis/make_figures.py --summary results/summary.csv --raw results/raw \
 	  --week7 experiments/week7 --outdir figures
 	python3 analysis/weekly_figures.py --outdir figures
+
+# Báo cáo Word (cần: pip install python-docx) -> docs/BAO_CAO_KET_QUA.docx
+report-docx:
+	python3 scripts/make_report_docx.py
 
 # Demo nhanh pipeline ML trên dữ liệu giả lập (không cần testbed)
 offline-demo:
