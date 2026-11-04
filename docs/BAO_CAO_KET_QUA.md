@@ -19,7 +19,7 @@
 **Phát hiện quan trọng nhất:** chỉ cải thiện bộ phát hiện (B1 → B2) **không** cải
 thiện trải nghiệm người dùng khi bị tấn công: LSR của B2 ≈ B1 ở cả S3, S4, S5
 (Bảng A). Phần lớn lợi ích đến từ việc **chặn đúng nguồn** (B2 → B3): LSR tăng
-thêm +0.37 đến +0.74. Phát hiện tốt là điều kiện cần (không báo nhầm, ở Bảng B);
+thêm +0.39 đến +0.74. Phát hiện tốt là điều kiện cần (không báo nhầm, ở Bảng B);
 mitigation chọn lọc mới là điều kiện đủ để giữ dịch vụ.
 
 ## 2. Hệ thống và thiết kế thí nghiệm

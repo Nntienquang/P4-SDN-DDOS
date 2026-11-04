@@ -18,3 +18,4 @@ mininet/topology.json
 mininet/s1-runtime.json
 !figures/tuan*/
 !figures/tuan*/*.png
+.slides/
