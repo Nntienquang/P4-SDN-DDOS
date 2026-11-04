@@ -84,18 +84,25 @@ def main():
         st = list(csv.DictReader(open(args.stats)))
         md += ["### Bảng D — Kiểm định B3 so với từng baseline", "",
                "Đơn vị = run. Hiệu = mean(B3) − mean(baseline), CI95 bootstrap. "
-               "p Mann-Whitney hai phía đã hiệu chỉnh Holm theo từng metric; "
-               "kèm Welch t-test. Lưu ý: với n run/nhóm, p Mann-Whitney nhỏ nhất "
-               "có thể đạt là 2/C(2n,n) (n=3 → 0.10; n=5 → 0.008).", "",
-               "| Metric | Scenario | So với | n | Hiệu (B3−X) | CI95 hiệu | p MW (Holm) | p Welch |",
-               "| --- | --- | --- | --- | --- | --- | --- | --- |"]
+               "p đã hiệu chỉnh Holm trong từng metric. \"Tách hoàn toàn\" = mọi "
+               "run của B3 tốt hơn mọi run của baseline (U = 0). Lưu ý: với n run/"
+               "nhóm, p Mann-Whitney nhỏ nhất có thể đạt là 2/C(2n,n) (n=3 → 0.10; "
+               "n=5 → 0.0079), nên sau Holm với 9 phép so sánh, MW không thể xuống "
+               "dưới 0.05 dù hai nhóm tách hoàn toàn; Welch t-test (giả định gần "
+               "chuẩn) là kiểm định chính, MW là kiểm tra phi tham số bổ trợ.", "",
+               "| Metric | Scenario | So với | n | Hiệu (B3−X) | CI95 hiệu | Tách hoàn toàn | p Welch (Holm) | p MW (Holm) |",
+               "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
         for r in st:
             if r["metric"] not in ("lsr_attack", "user_sr_attack", "flash_sr", "flash_fpr"):
                 continue
-            md.append("| %s | %s | %s | %s/%s | %+.3f | [%s, %s] | %s | %s |" % (
+            pw = r.get("p_welch_holm")
+            pw = "—" if pw in (None, "") else ("< 0.001" if float(pw) < 0.001
+                                               else "%.3f" % float(pw))
+            md.append("| %s | %s | %s | %s/%s | %+.3f | [%.3f, %.3f] | %s | %s | %s |" % (
                 r["metric"], r["scenario"], r["other"], r["n_ref"], r["n_other"],
-                float(r["diff"]), r["diff_ci95_lo"], r["diff_ci95_hi"],
-                r.get("p_mw_holm") or "—", r.get("p_welch") or "—"))
+                float(r["diff"]), float(r["diff_ci95_lo"]), float(r["diff_ci95_hi"]),
+                "có" if r.get("separated") == "1" else "không", pw,
+                r.get("p_mw_holm") or "—"))
         md.append("")
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     open(args.out, "w").write("\n".join(md) + "\n")

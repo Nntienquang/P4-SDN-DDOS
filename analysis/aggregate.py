@@ -117,10 +117,16 @@ def write_summary(groups, out_path):
 
 def mann_whitney_u(a, b):
     """Mann-Whitney U hai phía. Dùng scipy nếu có, else xấp xỉ chuẩn."""
+    # Hai nhóm toàn giá trị giống hệt nhau: không có bằng chứng khác biệt.
+    # (scipy trả p = NaN trường hợp này; NaN làm hỏng thứ tự Holm.)
+    if len(set(a) | set(b)) <= 1:
+        return float(len(a) * len(b)) / 2, 1.0
     try:
         from scipy.stats import mannwhitneyu
         u, p = mannwhitneyu(a, b, alternative="two-sided")
-        return u, p
+        if p != p:      # NaN
+            return float(u), 1.0
+        return float(u), float(p)
     except Exception:
         return _mwu_normal(a, b)
 
@@ -208,8 +214,9 @@ def welch_t(a, b):
     try:
         from scipy.stats import ttest_ind
         if len(set(a)) <= 1 and len(set(b)) <= 1:
-            return None
-        return float(ttest_ind(a, b, equal_var=False).pvalue)
+            return None if a[0] != b[0] else 1.0
+        p = float(ttest_ind(a, b, equal_var=False).pvalue)
+        return None if p != p else p
     except Exception:
         return None
 
@@ -238,7 +245,7 @@ def compare_all(groups, out_path, ref="B3", others=("B0", "B1", "B2")):
     rows = []
     scns = sorted({s for s, _ in groups})
     for metric in COMPARE_METRICS:
-        fam = {}
+        fam, fam_w = {}, {}
         for scn in scns:
             a = groups.get((scn, ref), {}).get(metric, [])
             for ob in others:
@@ -246,9 +253,13 @@ def compare_all(groups, out_path, ref="B3", others=("B0", "B1", "B2")):
                 if len(a) < 2 or len(b) < 2:
                     continue
                 _, p_mw = mann_whitney_u(a, b)
+                p_w = welch_t(a, b)
                 lo, hi = bootstrap_diff_ci(a, b)
                 key = (scn, ob)
                 fam[key] = p_mw
+                fam_w[key] = 1.0 if p_w is None else p_w
+                # tách hoàn toàn: mọi run của nhóm này lớn (hoặc nhỏ) hơn mọi run nhóm kia
+                sep = (min(a) > max(b)) or (max(a) < min(b))
                 rows.append({"metric": metric, "scenario": scn,
                              "ref": ref, "other": ob,
                              "n_ref": len(a), "n_other": len(b),
@@ -258,18 +269,20 @@ def compare_all(groups, out_path, ref="B3", others=("B0", "B1", "B2")):
                              "diff_ci95_lo": None if lo is None else round(lo, 4),
                              "diff_ci95_hi": None if hi is None else round(hi, 4),
                              "p_mannwhitney": round(p_mw, 4),
-                             "p_welch": (None if welch_t(a, b) is None
-                                         else round(welch_t(a, b), 4))})
+                             "p_welch": None if p_w is None else round(p_w, 6),
+                             "separated": int(sep)})
         if fam:
             adj = holm_bonferroni({"%s|%s" % k: v for k, v in fam.items()})
+            adj_w = holm_bonferroni({"%s|%s" % k: v for k, v in fam_w.items()})
             for r in rows:
                 k = "%s|%s" % (r["scenario"], r["other"])
                 if r["metric"] == metric and k in adj:
                     r["p_mw_holm"] = round(adj[k][1], 4)
+                    r["p_welch_holm"] = round(adj_w[k][1], 6)
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     cols = ["metric", "scenario", "ref", "other", "n_ref", "n_other",
             "mean_ref", "mean_other", "diff", "diff_ci95_lo", "diff_ci95_hi",
-            "p_mannwhitney", "p_mw_holm", "p_welch"]
+            "separated", "p_mannwhitney", "p_mw_holm", "p_welch", "p_welch_holm"]
     with open(out_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=cols)
         w.writeheader()

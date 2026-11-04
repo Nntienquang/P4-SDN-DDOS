@@ -140,9 +140,11 @@ def timeline(raw_dir, scn, seed, path, baselines=("B0", "B1", "B2", "B3"), bin_s
         kind = "ddos" if ph["kind"] in ("syn", "udp") else ph["kind"]
         if kind in PHASE_FILL and kind not in seen:
             seen.add(kind)
-            ax.text(ph["start"] + 1, 1.07, "pha tấn công" if kind == "ddos" else
-                    "pha Flash Crowd", fontsize=8, color=TEXT2)
-    ax.set_ylim(-0.03, 1.13)
+            # 2 tầng chữ để nhãn các pha chồng nhau (S5) không đè lên nhau
+            ax.text(ph["start"] + 1, 1.07 if kind == "flash" else 1.015,
+                    "pha tấn công" if kind == "ddos" else "pha Flash Crowd",
+                    fontsize=8, color=TEXT2)
+    ax.set_ylim(-0.03, 1.14)
     ax.set_xlabel("Thời gian từ đầu kịch bản (s)")
     ax.set_ylabel("Tỉ lệ request probe thành công")
     ax.set_title("Diễn biến dịch vụ — %s, seed %d (bin %.0fs)" %

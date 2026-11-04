@@ -78,6 +78,7 @@ analyze:
 figures:
 	python3 analysis/make_figures.py --summary results/summary.csv --raw results/raw \
 	  --week7 experiments/week7 --outdir figures
+	python3 analysis/weekly_figures.py --outdir figures
 
 # Demo nhanh pipeline ML trên dữ liệu giả lập (không cần testbed)
 offline-demo:

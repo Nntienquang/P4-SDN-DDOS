@@ -136,6 +136,15 @@ def run_one(scn, baseline, seed, model_path, out_root, jitter, owner):
     rt = os.path.join(outdir, "realtime.csv")
     if not os.path.exists(rt) or sum(1 for _ in open(rt)) < 20:
         problems.append("realtime.csv thiếu/quá ngắn")
+    else:
+        # máy ảo ngủ/treo giữa run -> log có khoảng trống lớn: dữ liệu hỏng
+        import csv as _csv
+        walls = [float(r["wall"]) for r in _csv.DictReader(open(rt)) if r.get("wall")]
+        gaps = [b - a for a, b in zip(walls, walls[1:])]
+        if gaps and max(gaps) > 10:
+            problems.append("log có khoảng trống %.0fs (máy ngủ/treo?)" % max(gaps))
+    if time.time() - t_start > 900:
+        problems.append("run kéo dài %.0fs bất thường" % (time.time() - t_start))
 
     meta = {"scenario": scn, "baseline": baseline, "seed": seed,
             "jitter": jitter, "model": model_path if baseline in ("B2", "B3") else None,
