@@ -1,0 +1,53 @@
+{
+  "name": "S3_syn_flood",
+  "t0": 1793757245.66021,
+  "seed": 14,
+  "jitter": 0.3,
+  "duration": 120,
+  "phases": [
+    {
+      "kind": "normal",
+      "start": 0,
+      "end": 30,
+      "hosts": [
+        "h1",
+        "h2",
+        "h3"
+      ],
+      "params": {
+        "clients": 2
+      }
+    },
+    {
+      "kind": "syn",
+      "start": 30,
+      "end": 90,
+      "hosts": [
+        "a1",
+        "a2",
+        "a3"
+      ],
+      "params": {
+        "pps": 1749
+      }
+    },
+    {
+      "kind": "normal",
+      "start": 30,
+      "end": 120,
+      "hosts": [
+        "h1",
+        "h2",
+        "h3"
+      ],
+      "params": {
+        "clients": 3
+      }
+    }
+  ],
+  "attack_ips": [
+    "10.0.0.50",
+    "10.0.0.51",
+    "10.0.0.52"
+  ]
+}

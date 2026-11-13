@@ -1,0 +1,49 @@
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+*** Error: Warning: sch_htb: quantum of class 50001 is big. Consider r2q change.
+simple_switch_grpc -i 11@s1-eth11 -i 12@s1-eth12 -i 13@s1-eth13 -i 3@s1-eth3 -i 4@s1-eth4 -i 5@s1-eth5 -i 6@s1-eth6 -i 7@s1-eth7 -i 8@s1-eth8 -i 9@s1-eth9 -i 10@s1-eth10 -i 2@s1-eth2 -i 1@s1-eth1 --nanolog ipc:///tmp/bm-0-log.ipc --device-id 0 /home/p4/P4-SDN-DDOS/build/telemetry.json --thrift-port 9090 -- --grpc-server-addr 0.0.0.0:50051
+
+ - Using P4Info file build/telemetry.p4.p4info.txtpb...
+ - Connecting to P4Runtime server on 127.0.0.1:50051 (bmv2)...
+ - Setting pipeline config (build/telemetry.json)...
+ - Inserting 13 table entries...
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.100', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:01, port=1)
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.200', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:02, port=2)
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.10', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:03, port=3)
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.11', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:04, port=4)
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.12', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:05, port=5)
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.13', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:06, port=6)
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.14', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:07, port=7)
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.15', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:08, port=8)
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.16', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:09, port=9)
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.17', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:0a, port=10)
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.50', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:0b, port=11)
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.51', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:0c, port=12)
+ - MyIngress.ipv4_lpm: hdr.ipv4.dstAddr=['10.0.0.52', 32] => MyIngress.ipv4_forward(dstAddr=08:00:00:00:00:0d, port=13)
+[run_net] đã nạp pipeline + forwarding vào s1.
+[run_net] server HTTP:80 + iperf3:5201 đã chạy.
+[scenario] detector sẵn sàng sau 0.4s
+[scenario:S1_normal] bắt đầu, 120s, seed=3
+  [t=  0.0] pha normal trên ['h1', 'h2', 'h3', 'h4'] (120s) {'clients': 3}
+[scenario:S1_normal] xong -> logs/ground_truth.json

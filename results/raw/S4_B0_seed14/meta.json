@@ -1,0 +1,14 @@
+{
+  "scenario": "S4",
+  "baseline": "B0",
+  "seed": 14,
+  "jitter": 0.3,
+  "model": null,
+  "detector_args": [
+    "--mitigation",
+    "none"
+  ],
+  "time": "2026-11-03 21:00:38",
+  "wall_s": 132.3,
+  "problems": []
+}

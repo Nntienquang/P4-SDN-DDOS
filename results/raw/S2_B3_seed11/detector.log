@@ -1,0 +1,133 @@
+[mitigation] meter: chung 300 pps, theo cổng 50 pps
+[detector] dùng model: /home/p4/P4-SDN-DDOS/models/rf.pkl
+[detector] mitigation=targeted feedback=True
+[detector] bắt đầu vòng lặp online, poll=1.00s
+  t=   1.1 pr=    0.0 syn/ack= 0.00 src=-0.0 -> ok   [L0-monitor] 
+  t=   2.3 pr=   87.4 syn/ack= 9.00 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=   3.4 pr=   68.2 syn/ack= 7.78 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=   4.6 pr=   87.7 syn/ack= 9.10 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=   5.7 pr=  108.1 syn/ack=10.09 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=   6.8 pr=   78.0 syn/ack= 8.89 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=   7.9 pr=   68.8 syn/ack= 8.75 src= 3.0 -> ok   [L0-monitor]  lsr=1.00
+  t=   9.1 pr=   96.1 syn/ack= 9.00 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  10.2 pr=   78.2 syn/ack= 9.00 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  11.3 pr=   86.6 syn/ack= 9.00 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  12.5 pr=   77.0 syn/ack= 8.89 src= 3.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  13.6 pr=   77.8 syn/ack= 8.89 src= 3.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  14.8 pr=   96.6 syn/ack= 9.09 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  15.9 pr=   67.1 syn/ack= 8.75 src= 3.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  17.0 pr=  126.7 syn/ack= 9.29 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  18.2 pr=   71.7 syn/ack= 8.11 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  19.4 pr=  106.5 syn/ack= 9.75 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  20.5 pr=   58.0 syn/ack= 8.57 src= 3.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  21.6 pr=   97.0 syn/ack= 9.09 src= 3.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  22.8 pr=  110.0 syn/ack= 8.77 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  23.9 pr=   63.6 syn/ack= 9.43 src= 3.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  25.0 pr=   89.2 syn/ack= 8.27 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  26.2 pr=   83.9 syn/ack= 9.78 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  27.3 pr=   69.7 syn/ack= 7.89 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  28.4 pr=  106.6 syn/ack=10.00 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  29.6 pr=  139.2 syn/ack= 9.33 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  30.7 pr=   78.2 syn/ack= 8.89 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  31.9 pr=  110.2 syn/ack= 9.23 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  33.0 pr=  118.6 syn/ack= 7.93 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  34.1 pr=  280.6 syn/ack=10.14 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  35.3 pr=  338.5 syn/ack= 9.67 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  36.4 pr=  363.2 syn/ack= 9.97 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  37.6 pr=  475.6 syn/ack= 9.63 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  38.7 pr=  673.1 syn/ack= 9.99 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  39.9 pr=  718.0 syn/ack= 9.77 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  41.0 pr=  847.6 syn/ack= 9.61 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  42.1 pr=  696.0 syn/ack=10.29 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  43.2 pr=  981.0 syn/ack= 9.69 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  44.4 pr= 1098.1 syn/ack=10.05 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  45.5 pr= 1314.3 syn/ack= 9.83 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  46.6 pr= 1169.4 syn/ack= 9.77 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  47.8 pr= 1387.6 syn/ack=10.07 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  48.9 pr= 1321.2 syn/ack= 9.60 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  50.0 pr= 1603.6 syn/ack= 9.48 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  51.2 pr= 1619.7 syn/ack=10.70 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  52.3 pr= 1564.6 syn/ack= 9.56 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  53.4 pr= 1671.2 syn/ack= 9.63 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  54.6 pr= 1666.4 syn/ack= 9.11 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  55.7 pr= 1659.8 syn/ack= 9.95 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  56.8 pr= 1676.4 syn/ack= 9.75 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  58.0 pr= 1670.8 syn/ack= 9.83 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  59.1 pr= 1650.6 syn/ack= 9.63 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  60.2 pr= 1652.2 syn/ack= 9.06 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  61.3 pr= 1677.7 syn/ack= 9.22 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  62.5 pr= 1648.4 syn/ack=10.31 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  63.6 pr= 1666.2 syn/ack= 9.84 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  64.7 pr= 1665.4 syn/ack= 9.19 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  65.9 pr= 1663.6 syn/ack=10.17 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  67.0 pr= 1664.5 syn/ack=10.82 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  68.1 pr= 1651.1 syn/ack= 9.56 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  69.2 pr= 1667.2 syn/ack=10.94 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  70.4 pr= 1664.5 syn/ack= 9.11 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  71.5 pr= 1648.6 syn/ack=10.67 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  72.6 pr= 1644.3 syn/ack= 9.52 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  73.8 pr= 1655.8 syn/ack= 9.56 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  74.9 pr= 1662.9 syn/ack=11.12 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  76.0 pr= 1632.4 syn/ack= 9.41 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  77.2 pr= 1647.1 syn/ack= 8.57 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  78.3 pr= 1674.0 syn/ack=11.24 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  79.4 pr= 1654.6 syn/ack= 9.63 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  80.6 pr= 1673.0 syn/ack= 9.83 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  81.7 pr= 1664.0 syn/ack= 9.97 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  82.8 pr= 1587.5 syn/ack=10.65 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  84.0 pr= 1625.4 syn/ack=10.12 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  85.1 pr= 1606.5 syn/ack= 8.98 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  86.3 pr= 1545.0 syn/ack=10.07 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  87.4 pr= 1675.5 syn/ack= 9.89 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  88.6 pr= 1531.7 syn/ack=10.26 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  89.7 pr= 1591.5 syn/ack=10.46 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  90.9 pr= 1572.9 syn/ack= 9.42 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  92.0 pr= 1527.7 syn/ack= 9.72 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  93.1 pr= 1010.5 syn/ack=33.67 src=10.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  94.3 pr=  106.3 syn/ack= 9.17 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  95.4 pr=   77.6 syn/ack= 8.89 src= 3.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  96.5 pr=  107.1 syn/ack= 9.17 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  97.7 pr=  126.4 syn/ack= 8.67 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  98.8 pr=  115.0 syn/ack=10.00 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t=  99.9 pr=  106.2 syn/ack= 9.17 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 101.1 pr=  155.6 syn/ack= 9.41 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 102.2 pr=  117.3 syn/ack= 9.23 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 103.3 pr=   68.5 syn/ack= 8.75 src= 3.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 104.5 pr=   87.8 syn/ack= 9.00 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 105.6 pr=   97.5 syn/ack= 9.09 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 106.7 pr=  106.8 syn/ack= 9.17 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 107.9 pr=   86.9 syn/ack= 9.00 src= 3.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 109.0 pr=  106.1 syn/ack= 9.17 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 110.1 pr=   87.1 syn/ack= 9.00 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 111.3 pr=   78.0 syn/ack= 8.89 src= 3.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 112.4 pr=  106.0 syn/ack= 9.08 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 113.5 pr=   88.5 syn/ack= 9.10 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 114.7 pr=   87.5 syn/ack= 9.00 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 115.8 pr=   86.7 syn/ack= 9.00 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 116.9 pr=  116.3 syn/ack= 9.23 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 118.1 pr=  106.7 syn/ack= 9.17 src= 3.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 119.2 pr=   77.5 syn/ack= 8.89 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 120.4 pr=   67.0 syn/ack= 8.75 src= 4.0 -> ok   [L0-monitor]  lsr=1.00Exception in thread Thread-3 (_dispatch_loop):
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/p4/tutorials/utils/p4runtime_lib/switch.py", line 36, in _dispatch_loop
+    for msg in self.stream:
+  File "/home/p4/src/p4dev-python-venv/lib/python3.12/site-packages/grpc/_channel.py", line 541, in __next__
+    return self._next()
+           ^^^^^^^^^^^^
+  File "/home/p4/src/p4dev-python-venv/lib/python3.12/site-packages/grpc/_channel.py", line 967, in _next
+    raise self
+grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
+	status = StatusCode.UNAVAILABLE
+	details = "Socket closed"
+	debug_error_string = "UNKNOWN:Error received from peer ipv4:127.0.0.1:50051 {created_time:"2026-11-03T12:13:46.326907456-05:00", grpc_status:14, grpc_message:"Socket closed"}"
+>
+
+  t= 121.5 pr=   85.7 syn/ack= 9.00 src= 4.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 122.6 pr=   29.0 syn/ack= 7.50 src= 2.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 123.8 pr=    0.0 syn/ack= 0.00 src=-0.0 -> ok   [L0-monitor]  lsr=1.00
+  t= 124.9 pr=    0.0 syn/ack= 0.00 src=-0.0 -> ok   [L0-monitor]  lsr=1.00
+[detector] mất kết nối switch (_MultiThreadedRendezvous) -> dừng.

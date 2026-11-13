@@ -1,0 +1,147 @@
+[mitigation] meter: chung 300 pps, theo cổng 50 pps
+[detector] dùng static threshold baseline (B1)
+[detector] mitigation=coarse feedback=False
+[detector] bắt đầu vòng lặp online, poll=1.00s
+  t=   1.1 pr=    0.0 syn/ack= 0.00 src=-0.0 -> ok   [L0-monitor] 
+  t=   2.2 pr=  108.7 syn/ack= 9.17 src= 5.0 -> ok   [L0-monitor] 
+  t=   3.3 pr=   93.0 syn/ack= 9.00 src= 4.0 -> ok   [L0-monitor] 
+  t=   4.4 pr=  139.5 syn/ack= 9.33 src= 5.0 -> ok   [L0-monitor] 
+  t=   5.5 pr=  121.2 syn/ack= 9.23 src= 5.0 -> ok   [L0-monitor] 
+  t=   6.6 pr=  101.0 syn/ack= 8.33 src= 4.0 -> ok   [L0-monitor] 
+  t=   7.7 pr=  118.8 syn/ack=10.00 src= 5.0 -> ok   [L0-monitor] 
+  t=   8.8 pr=  111.9 syn/ack= 8.69 src= 5.0 -> ok   [L0-monitor] 
+  t=   9.9 pr=  116.1 syn/ack= 9.75 src= 5.0 -> ok   [L0-monitor] 
+[detector] threshold học được: 167.4
+  t=  11.0 pr=  110.9 syn/ack= 8.46 src= 5.0 -> ok   [L0-monitor] 
+  t=  12.1 pr=  147.3 syn/ack=10.00 src= 5.0 -> ok   [L0-monitor] 
+  t=  13.2 pr=  121.0 syn/ack= 8.57 src= 5.0 -> ok   [L0-monitor] 
+  t=  14.3 pr=   98.5 syn/ack= 9.09 src= 5.0 -> ok   [L0-monitor] 
+  t=  15.5 pr=  124.2 syn/ack= 9.69 src= 5.0 -> ok   [L0-monitor] 
+  t=  16.5 pr=  105.9 syn/ack= 9.36 src= 4.0 -> ok   [L0-monitor] 
+  t=  17.6 pr=  119.8 syn/ack= 9.31 src= 5.0 -> ok   [L0-monitor] 
+  t=  18.7 pr=   89.9 syn/ack= 9.00 src= 4.0 -> ok   [L0-monitor] 
+  t=  19.8 pr=  131.6 syn/ack= 8.73 src= 5.0 -> ok   [L0-monitor] 
+  t=  20.9 pr=  120.5 syn/ack= 9.38 src= 5.0 -> ok   [L0-monitor] 
+  t=  22.0 pr=  149.0 syn/ack= 9.73 src= 5.0 -> ok   [L0-monitor] 
+  t=  23.1 pr=   90.1 syn/ack= 9.10 src= 5.0 -> ok   [L0-monitor] 
+  t=  24.2 pr=   80.5 syn/ack= 8.10 src= 4.0 -> ok   [L0-monitor] 
+  t=  25.3 pr=  121.6 syn/ack= 9.92 src= 4.0 -> ok   [L0-monitor] 
+  t=  26.4 pr=  150.7 syn/ack= 9.38 src= 5.0 -> ok   [L0-monitor] 
+  t=  27.5 pr=  128.5 syn/ack= 9.29 src= 5.0 -> ok   [L0-monitor] 
+  t=  28.6 pr=  119.7 syn/ack= 8.57 src= 5.0 -> ok   [L0-monitor] 
+  t=  29.7 pr=  117.4 syn/ack=10.00 src= 5.0 -> ok   [L0-monitor] 
+  t=  30.8 pr=  123.2 syn/ack= 9.23 src= 5.0 -> ok   [L0-monitor] 
+  t=  32.1 pr=   78.7 syn/ack= 3.08 src= 8.0 -> ok   [L0-monitor] 
+  t=  33.2 pr= 1736.3 syn/ack= 0.35 src= 8.0 -> DDoS [L0-monitor] chặn:a1,a2,a3
+  t=  34.3 pr= 1539.9 syn/ack= 0.38 src= 8.0 -> DDoS [L1-ratelimit] chặn:a1,a2,a3
+  t=  35.4 pr= 1527.5 syn/ack= 0.36 src= 8.0 -> DDoS [L1-ratelimit] chặn:a1,a2,a3
+  t=  36.6 pr= 1558.2 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  37.7 pr= 1481.7 syn/ack= 0.34 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  38.8 pr= 1524.5 syn/ack= 0.34 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  39.9 pr= 1547.7 syn/ack= 0.32 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  41.1 pr= 1473.5 syn/ack= 0.36 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  42.2 pr= 1505.8 syn/ack= 0.37 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  43.3 pr= 1514.0 syn/ack= 0.33 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  44.5 pr= 1454.4 syn/ack= 0.29 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  45.6 pr= 1084.6 syn/ack= 0.33 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  46.8 pr= 1237.4 syn/ack= 0.36 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  47.9 pr= 1165.2 syn/ack= 0.36 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  49.1 pr= 1297.7 syn/ack= 0.34 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  50.2 pr= 1264.7 syn/ack= 0.36 src= 7.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  51.4 pr= 1510.0 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  52.5 pr= 1517.4 syn/ack= 0.32 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  53.6 pr= 1532.6 syn/ack= 0.32 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  54.7 pr= 1516.4 syn/ack= 0.30 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  55.9 pr= 1415.3 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  57.1 pr= 1293.2 syn/ack= 0.36 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  58.2 pr= 1350.3 syn/ack= 0.35 src= 7.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  59.3 pr= 1443.3 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  60.5 pr= 1496.2 syn/ack= 0.37 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  61.6 pr= 1340.6 syn/ack= 0.33 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  62.8 pr= 1454.9 syn/ack= 0.33 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  63.9 pr= 1398.1 syn/ack= 0.33 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  65.0 pr= 1364.4 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  66.1 pr= 1443.1 syn/ack= 0.36 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  67.3 pr= 1475.4 syn/ack= 0.37 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  68.4 pr= 1475.4 syn/ack= 0.36 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  69.5 pr= 1440.2 syn/ack= 0.33 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  70.6 pr= 1510.6 syn/ack= 0.34 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  71.8 pr= 1548.7 syn/ack= 0.33 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  72.9 pr= 1526.1 syn/ack= 0.34 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  74.0 pr= 1482.1 syn/ack= 0.31 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  75.1 pr= 1535.9 syn/ack= 0.34 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  76.3 pr= 1530.0 syn/ack= 0.36 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  77.4 pr= 1224.6 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  78.7 pr= 1034.0 syn/ack= 0.36 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  79.9 pr=  988.9 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  81.1 pr= 1111.3 syn/ack= 0.34 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  82.2 pr= 1288.5 syn/ack= 0.34 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  83.4 pr= 1476.2 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  84.5 pr= 1489.7 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  85.6 pr= 1510.3 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  86.8 pr= 1537.9 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  87.9 pr= 1368.9 syn/ack= 0.33 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  89.1 pr= 1291.0 syn/ack= 0.36 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  90.2 pr= 1326.1 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  91.3 pr= 1408.7 syn/ack= 0.35 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  92.4 pr= 1487.7 syn/ack= 0.36 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  93.5 pr= 1375.2 syn/ack= 2.24 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  94.6 pr=  202.9 syn/ack=10.06 src= 8.0 -> DDoS [L2-drop] 
+  t=  95.7 pr=  238.9 syn/ack=10.81 src= 8.0 -> DDoS [L2-drop] 
+  t=  96.8 pr=  155.4 syn/ack= 9.88 src= 5.0 -> ok   [L2-drop] 
+  t=  97.9 pr=  113.6 syn/ack= 9.42 src= 6.0 -> ok   [L2-drop] 
+  t=  99.1 pr=  198.2 syn/ack= 9.43 src= 6.0 -> DDoS [L2-drop] 
+  t= 100.1 pr=  170.4 syn/ack= 9.82 src= 5.0 -> DDoS [L2-drop] 
+  t= 101.2 pr=   91.8 syn/ack= 8.27 src= 4.0 -> ok   [L2-drop] 
+  t= 102.3 pr=  141.5 syn/ack= 9.93 src= 5.0 -> ok   [L2-drop] 
+  t= 103.4 pr=  167.4 syn/ack= 9.44 src= 5.0 -> DDoS [L2-drop] 
+  t= 104.5 pr=  225.8 syn/ack= 9.58 src= 5.0 -> DDoS [L2-drop] 
+  t= 105.6 pr=  133.3 syn/ack= 9.21 src= 5.0 -> ok   [L2-drop] 
+  t= 106.7 pr=  138.2 syn/ack= 8.88 src= 5.0 -> ok   [L2-drop] 
+  t= 107.9 pr=  150.8 syn/ack= 9.56 src= 5.0 -> ok   [L2-drop] 
+  t= 109.0 pr=  173.5 syn/ack= 9.37 src= 5.0 -> DDoS [L2-drop] 
+  t= 110.1 pr=  198.4 syn/ack= 9.23 src= 5.0 -> DDoS [L2-drop] 
+  t= 111.2 pr=  116.3 syn/ack=10.64 src= 5.0 -> ok   [L2-drop] 
+  t= 112.3 pr=  117.7 syn/ack= 9.15 src= 4.0 -> ok   [L2-drop] 
+  t= 113.5 pr=  155.9 syn/ack= 8.94 src= 5.0 -> ok   [L2-drop] 
+  t= 114.6 pr=  156.6 syn/ack= 9.12 src= 5.0 -> ok   [L2-drop] 
+  t= 115.7 pr=  123.1 syn/ack=10.42 src= 5.0 -> ok   [L2-drop] 
+  t= 116.8 pr=  178.3 syn/ack= 9.47 src= 5.0 -> DDoS [L2-drop] 
+  t= 117.9 pr=  108.7 syn/ack= 9.17 src= 5.0 -> ok   [L2-drop] 
+  t= 119.0 pr=  188.7 syn/ack= 9.50 src= 5.0 -> DDoS [L2-drop] 
+  t= 120.1 pr=  144.5 syn/ack= 9.19 src= 5.0 -> ok   [L2-drop] 
+  t= 121.2 pr=   99.6 syn/ack= 9.36 src= 5.0 -> ok   [L2-drop] 
+  t= 122.3 pr=   82.3 syn/ack= 8.89 src= 5.0 -> ok   [L2-drop] 
+  t= 123.4 pr=    0.0 syn/ack= 0.00 src=-0.0 -> ok   [L2-drop] Exception in thread Thread-3 (_dispatch_loop):
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/p4/tutorials/utils/p4runtime_lib/switch.py", line 36, in _dispatch_loop
+    for msg in self.stream:
+  File "/home/p4/src/p4dev-python-venv/lib/python3.12/site-packages/grpc/_channel.py", line 541, in __next__
+    return self._next()
+           ^^^^^^^^^^^^
+  File "/home/p4/src/p4dev-python-venv/lib/python3.12/site-packages/grpc/_channel.py", line 967, in _next
+    raise self
+grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
+	status = StatusCode.UNAVAILABLE
+	details = "Socket closed"
+	debug_error_string = "UNKNOWN:Error received from peer ipv4:127.0.0.1:50051 {grpc_message:"Socket closed", grpc_status:14, created_time:"2026-11-03T20:47:07.620186609-05:00"}"
+>
+
+  t= 124.5 pr=    0.0 syn/ack= 0.00 src=-0.0 -> ok   [L2-drop] 
+  t= 125.6 pr=    0.0 syn/ack= 0.00 src=-0.0 -> ok   [L1-ratelimit] 
+
+[detector] dừng.
+[warn] xóa rule lỗi: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.UNAVAILABLE
+	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:127.0.0.1:50051: Failed to connect to remote host: Connection refused"
+	debug_error_string = "UNKNOWN:failed to connect to all addresses; last error: UNKNOWN: ipv4:127.0.0.1:50051: Failed to connect to remote host: Connection refused {grpc_status:14, created_time:"2026-11-03T20:47:07.871138902-05:00"}"
+>
+[warn] xóa rule lỗi: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.UNAVAILABLE
+	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:127.0.0.1:50051: Failed to connect to remote host: Connection refused"
+	debug_error_string = "UNKNOWN:failed to connect to all addresses; last error: UNKNOWN: ipv4:127.0.0.1:50051: Failed to connect to remote host: Connection refused {created_time:"2026-11-03T20:47:07.871718833-05:00", grpc_status:14}"
+>

@@ -1,0 +1,23 @@
+{
+  "data": "data/uniflash_v01.csv",
+  "n_windows": 2610,
+  "n_runs": 24,
+  "features": [
+    "packet_rate",
+    "byte_rate",
+    "syn_rate",
+    "udp_rate",
+    "syn_ack_ratio",
+    "source_count",
+    "source_entropy",
+    "growth_slope"
+  ],
+  "label_map": {
+    "normal": 0,
+    "flash": 0,
+    "ddos": 1,
+    "syn": 1,
+    "udp": 1
+  },
+  "cv": "GroupKFold k=5 theo run_id"
+}

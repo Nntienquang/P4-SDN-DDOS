@@ -1,0 +1,17 @@
+{
+  "scenario": "S3",
+  "baseline": "B3",
+  "seed": 12,
+  "jitter": 0.3,
+  "model": "/home/p4/P4-SDN-DDOS/models/rf.pkl",
+  "detector_args": [
+    "--model",
+    "/home/p4/P4-SDN-DDOS/models/rf.pkl",
+    "--mitigation",
+    "targeted",
+    "--feedback"
+  ],
+  "time": "2026-11-03 12:43:01",
+  "wall_s": 134.5,
+  "problems": []
+}

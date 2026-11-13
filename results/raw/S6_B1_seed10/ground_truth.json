@@ -1,0 +1,50 @@
+{
+  "name": "S6_background_shift",
+  "t0": 1793754813.4336896,
+  "seed": 10,
+  "jitter": 0.3,
+  "duration": 150,
+  "phases": [
+    {
+      "kind": "normal",
+      "start": 0,
+      "end": 50,
+      "hosts": [
+        "h1",
+        "h2"
+      ],
+      "params": {
+        "clients": 2
+      }
+    },
+    {
+      "kind": "normal",
+      "start": 50,
+      "end": 100,
+      "hosts": [
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6"
+      ],
+      "params": {
+        "clients": 4
+      }
+    },
+    {
+      "kind": "normal",
+      "start": 100,
+      "end": 150,
+      "hosts": [
+        "h1",
+        "h2"
+      ],
+      "params": {
+        "clients": 2
+      }
+    }
+  ],
+  "attack_ips": []
+}

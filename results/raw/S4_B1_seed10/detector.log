@@ -1,0 +1,137 @@
+[mitigation] meter: chung 300 pps, theo cổng 50 pps
+[detector] dùng static threshold baseline (B1)
+[detector] mitigation=coarse feedback=False
+[detector] bắt đầu vòng lặp online, poll=1.00s
+  t=   1.1 pr=    0.0 syn/ack= 0.00 src=-0.0 -> ok   [L0-monitor] 
+  t=   2.3 pr=  153.9 syn/ack= 9.41 src= 5.0 -> ok   [L0-monitor] 
+  t=   3.4 pr=  157.8 syn/ack= 8.89 src= 5.0 -> ok   [L0-monitor] 
+  t=   4.5 pr=  126.1 syn/ack=10.00 src= 5.0 -> ok   [L0-monitor] 
+  t=   5.6 pr=  219.9 syn/ack= 9.57 src= 5.0 -> ok   [L0-monitor] 
+  t=   6.8 pr=  124.1 syn/ack= 9.29 src= 5.0 -> ok   [L0-monitor] 
+  t=   7.9 pr=  147.6 syn/ack= 9.38 src= 5.0 -> ok   [L0-monitor] 
+  t=   9.0 pr=  186.8 syn/ack= 9.00 src= 5.0 -> ok   [L0-monitor] 
+  t=  10.1 pr=  215.3 syn/ack=10.05 src= 5.0 -> ok   [L0-monitor] 
+[detector] threshold học được: 263.8
+  t=  11.2 pr=  172.5 syn/ack= 9.44 src= 5.0 -> ok   [L0-monitor] 
+  t=  12.3 pr=  118.3 syn/ack= 9.23 src= 5.0 -> ok   [L0-monitor] 
+  t=  13.4 pr=   99.1 syn/ack= 9.09 src= 5.0 -> ok   [L0-monitor] 
+  t=  14.6 pr=  147.6 syn/ack= 9.38 src= 5.0 -> ok   [L0-monitor] 
+  t=  15.7 pr=  155.1 syn/ack= 9.41 src= 5.0 -> ok   [L0-monitor] 
+  t=  16.8 pr=  130.8 syn/ack= 8.73 src= 5.0 -> ok   [L0-monitor] 
+  t=  17.9 pr=  125.2 syn/ack= 9.92 src= 5.0 -> ok   [L0-monitor] 
+  t=  19.1 pr=  147.6 syn/ack= 9.00 src= 5.0 -> ok   [L0-monitor] 
+  t=  20.2 pr=  148.0 syn/ack= 9.38 src= 5.0 -> ok   [L0-monitor] 
+  t=  21.3 pr=  180.1 syn/ack= 9.58 src= 5.0 -> ok   [L0-monitor] 
+  t=  22.4 pr=  181.3 syn/ack= 9.83 src= 5.0 -> ok   [L0-monitor] 
+  t=  23.5 pr=  125.5 syn/ack= 9.00 src= 5.0 -> ok   [L0-monitor] 
+  t=  24.6 pr=  201.3 syn/ack= 9.09 src= 5.0 -> ok   [L0-monitor] 
+  t=  25.7 pr=  142.4 syn/ack=10.29 src= 5.0 -> ok   [L0-monitor] 
+  t=  26.8 pr=  156.3 syn/ack= 8.53 src= 5.0 -> ok   [L0-monitor] 
+  t=  27.9 pr=  184.3 syn/ack=10.17 src= 5.0 -> ok   [L0-monitor] 
+  t=  29.0 pr=  174.0 syn/ack= 9.72 src= 5.0 -> ok   [L0-monitor] 
+  t=  30.1 pr=  123.0 syn/ack= 8.64 src= 5.0 -> ok   [L0-monitor] 
+  t=  31.2 pr=  176.3 syn/ack= 9.94 src= 5.0 -> ok   [L0-monitor] 
+  t=  32.3 pr=  809.0 syn/ack= 6.84 src= 8.0 -> DDoS [L0-monitor] chặn:a1,a2,a3
+  t=  33.5 pr= 1709.7 syn/ack= 8.00 src= 8.0 -> DDoS [L1-ratelimit] chặn:a1,a2,a3
+  t=  34.6 pr= 1628.6 syn/ack= 3.67 src= 8.0 -> DDoS [L1-ratelimit] chặn:a1,a2,a3
+  t=  35.7 pr= 1510.0 syn/ack= 2.28 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  36.8 pr= 1572.6 syn/ack= 2.88 src= 7.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  38.0 pr= 1554.1 syn/ack= 1.65 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  39.1 pr= 1537.8 syn/ack= 0.50 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  40.2 pr= 1545.5 syn/ack= 0.40 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  41.3 pr= 1547.6 syn/ack= 0.68 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  42.5 pr= 1490.3 syn/ack= 1.14 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  43.6 pr= 1532.7 syn/ack= 0.94 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  44.7 pr= 1494.3 syn/ack= 1.19 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  45.8 pr= 1452.2 syn/ack= 0.88 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  46.9 pr= 1469.9 syn/ack= 0.61 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  48.1 pr= 1402.3 syn/ack= 0.69 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  49.2 pr= 1469.5 syn/ack= 1.05 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  50.3 pr= 1507.4 syn/ack= 1.88 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  51.4 pr= 1522.5 syn/ack= 2.27 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  52.5 pr= 1527.2 syn/ack= 1.61 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  53.7 pr= 1501.8 syn/ack= 1.17 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  54.8 pr= 1391.3 syn/ack= 1.27 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  55.9 pr= 1439.6 syn/ack= 0.53 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  57.0 pr= 1471.0 syn/ack= 0.25 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  58.2 pr= 1478.7 syn/ack= 0.39 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  59.3 pr= 1477.7 syn/ack= 1.00 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  60.4 pr= 1470.8 syn/ack= 0.44 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  61.5 pr= 1478.3 syn/ack= 1.00 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  62.6 pr= 1491.3 syn/ack= 1.47 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  63.8 pr= 1519.8 syn/ack= 1.56 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  64.9 pr= 1469.2 syn/ack= 1.26 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  66.0 pr= 1468.6 syn/ack= 1.21 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  67.1 pr= 1473.1 syn/ack= 1.27 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  68.3 pr= 1502.2 syn/ack= 1.12 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  69.4 pr= 1456.3 syn/ack= 1.44 src= 7.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  70.5 pr= 1476.0 syn/ack= 2.14 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  71.6 pr= 1472.1 syn/ack= 0.84 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  72.7 pr= 1453.5 syn/ack= 1.12 src= 7.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  73.8 pr= 1470.5 syn/ack= 1.85 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  75.0 pr= 1471.0 syn/ack= 1.11 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  76.1 pr= 1510.9 syn/ack= 0.89 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  77.2 pr= 1519.6 syn/ack= 1.20 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  78.3 pr= 1526.5 syn/ack= 0.62 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  79.5 pr= 1508.6 syn/ack= 0.76 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  80.6 pr= 1515.4 syn/ack= 0.89 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  81.7 pr= 1530.6 syn/ack= 2.56 src= 7.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  82.8 pr= 1547.6 syn/ack= 2.25 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  84.0 pr= 1544.9 syn/ack= 0.78 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  85.1 pr= 1529.5 syn/ack= 1.20 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  86.2 pr= 1553.5 syn/ack= 1.07 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  87.3 pr= 1482.9 syn/ack= 0.47 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  88.4 pr= 1545.7 syn/ack= 0.71 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  89.6 pr= 1505.1 syn/ack= 1.56 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  90.7 pr= 1516.6 syn/ack= 1.61 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  91.8 pr= 1534.3 syn/ack= 2.00 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  92.9 pr= 1231.7 syn/ack= 5.72 src= 8.0 -> DDoS [L2-drop] chặn:a1,a2,a3
+  t=  94.0 pr=  142.2 syn/ack= 9.60 src= 5.0 -> ok   [L2-drop] 
+  t=  95.2 pr=  137.6 syn/ack= 9.33 src= 5.0 -> ok   [L2-drop] 
+  t=  96.3 pr=  139.0 syn/ack= 9.33 src= 5.0 -> ok   [L2-drop] 
+  t=  97.4 pr=  147.6 syn/ack= 8.76 src= 5.0 -> ok   [L2-drop] 
+  t=  98.5 pr=   99.8 syn/ack=10.10 src= 4.0 -> ok   [L2-drop] 
+  t=  99.6 pr=  154.2 syn/ack= 9.18 src= 5.0 -> ok   [L1-ratelimit] 
+  t= 100.7 pr=  130.4 syn/ack= 9.57 src= 5.0 -> ok   [L1-ratelimit] 
+  t= 101.8 pr=  129.0 syn/ack= 9.29 src= 5.0 -> ok   [L1-ratelimit] 
+  t= 102.9 pr=  102.1 syn/ack= 8.58 src= 5.0 -> ok   [L1-ratelimit] 
+  t= 104.1 pr=  136.5 syn/ack= 9.33 src= 5.0 -> ok   [L1-ratelimit] 
+  t= 105.2 pr=   90.7 syn/ack= 9.30 src= 5.0 -> ok   [L1-ratelimit] 
+  t= 106.3 pr=  102.2 syn/ack= 9.45 src= 4.0 -> ok   [L0-monitor] 
+  t= 107.4 pr=  185.3 syn/ack= 9.50 src= 5.0 -> ok   [L0-monitor] 
+  t= 108.6 pr=  120.5 syn/ack= 8.79 src= 5.0 -> ok   [L0-monitor] 
+  t= 109.7 pr=  124.8 syn/ack= 9.77 src= 5.0 -> ok   [L0-monitor] 
+  t= 110.8 pr=  138.5 syn/ack= 9.33 src= 5.0 -> ok   [L0-monitor] 
+  t= 111.9 pr=  108.2 syn/ack= 9.17 src= 4.0 -> ok   [L0-monitor] 
+  t= 113.0 pr=  108.3 syn/ack= 9.17 src= 5.0 -> ok   [L0-monitor] 
+  t= 114.1 pr=  110.4 syn/ack= 9.17 src= 5.0 -> ok   [L0-monitor] 
+  t= 115.3 pr=   86.9 syn/ack= 9.00 src= 4.0 -> ok   [L0-monitor] 
+  t= 116.4 pr=  120.4 syn/ack= 8.71 src= 5.0 -> ok   [L0-monitor] 
+  t= 117.5 pr=  116.4 syn/ack= 9.83 src= 5.0 -> ok   [L0-monitor] 
+  t= 118.6 pr=  135.9 syn/ack= 9.33 src= 5.0 -> ok   [L0-monitor] 
+  t= 119.8 pr=  117.5 syn/ack= 9.23 src= 5.0 -> ok   [L0-monitor] 
+  t= 120.9 pr=  118.3 syn/ack= 9.23 src= 5.0 -> ok   [L0-monitor] 
+  t= 122.0 pr=   81.5 syn/ack= 9.11 src= 5.0 -> ok   [L0-monitor] Exception in thread Thread-3 (_dispatch_loop):
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/p4/tutorials/utils/p4runtime_lib/switch.py", line 36, in _dispatch_loop
+    for msg in self.stream:
+  File "/home/p4/src/p4dev-python-venv/lib/python3.12/site-packages/grpc/_channel.py", line 541, in __next__
+    return self._next()
+           ^^^^^^^^^^^^
+  File "/home/p4/src/p4dev-python-venv/lib/python3.12/site-packages/grpc/_channel.py", line 967, in _next
+    raise self
+grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
+	status = StatusCode.UNAVAILABLE
+	details = "Socket closed"
+	debug_error_string = "UNKNOWN:Error received from peer ipv4:127.0.0.1:50051 {created_time:"2026-11-03T12:51:56.95203547-05:00", grpc_status:14, grpc_message:"Socket closed"}"
+>
+
+  t= 123.1 pr=    0.0 syn/ack= 0.00 src=-0.0 -> ok   [L0-monitor] 
+  t= 124.2 pr=    0.0 syn/ack= 0.00 src=-0.0 -> ok   [L0-monitor] 
+  t= 125.3 pr=    0.0 syn/ack= 0.00 src=-0.0 -> ok   [L0-monitor] 
+
+[detector] dừng.

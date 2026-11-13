@@ -1,0 +1,99 @@
+Tổng số run: 24 -> results/dataset_raw
+[1/24] đã chạy 0 phút
+
+===== S1_B0_seed0 =====
+  -> results/dataset_raw/S1_B0_seed0 (135s) OK
+[2/24] đã chạy 2 phút
+
+===== S1_B0_seed1 =====
+  -> results/dataset_raw/S1_B0_seed1 (134s) OK
+[3/24] đã chạy 4 phút
+
+===== S1_B0_seed2 =====
+  -> results/dataset_raw/S1_B0_seed2 (134s) OK
+[4/24] đã chạy 7 phút
+
+===== S1_B0_seed3 =====
+  -> results/dataset_raw/S1_B0_seed3 (134s) OK
+[5/24] đã chạy 9 phút
+
+===== S2_B0_seed0 =====
+  -> results/dataset_raw/S2_B0_seed0 (134s) OK
+[6/24] đã chạy 11 phút
+
+===== S2_B0_seed1 =====
+  -> results/dataset_raw/S2_B0_seed1 (134s) OK
+[7/24] đã chạy 13 phút
+
+===== S2_B0_seed2 =====
+  -> results/dataset_raw/S2_B0_seed2 (134s) OK
+[8/24] đã chạy 16 phút
+
+===== S2_B0_seed3 =====
+  -> results/dataset_raw/S2_B0_seed3 (134s) OK
+[9/24] đã chạy 18 phút
+
+===== S3_B0_seed0 =====
+  -> results/dataset_raw/S3_B0_seed0 (134s) OK
+[10/24] đã chạy 20 phút
+
+===== S3_B0_seed1 =====
+  -> results/dataset_raw/S3_B0_seed1 (134s) OK
+[11/24] đã chạy 22 phút
+
+===== S3_B0_seed2 =====
+  -> results/dataset_raw/S3_B0_seed2 (134s) OK
+[12/24] đã chạy 25 phút
+
+===== S3_B0_seed3 =====
+  -> results/dataset_raw/S3_B0_seed3 (135s) OK
+[13/24] đã chạy 27 phút
+
+===== S4_B0_seed0 =====
+  -> results/dataset_raw/S4_B0_seed0 (134s) OK
+[14/24] đã chạy 29 phút
+
+===== S4_B0_seed1 =====
+  -> results/dataset_raw/S4_B0_seed1 (134s) OK
+[15/24] đã chạy 31 phút
+
+===== S4_B0_seed2 =====
+  -> results/dataset_raw/S4_B0_seed2 (134s) OK
+[16/24] đã chạy 34 phút
+
+===== S4_B0_seed3 =====
+  -> results/dataset_raw/S4_B0_seed3 (135s) OK
+[17/24] đã chạy 36 phút
+
+===== S5_B0_seed0 =====
+  -> results/dataset_raw/S5_B0_seed0 (164s) OK
+[18/24] đã chạy 39 phút
+
+===== S5_B0_seed1 =====
+  -> results/dataset_raw/S5_B0_seed1 (164s) OK
+[19/24] đã chạy 41 phút
+
+===== S5_B0_seed2 =====
+  -> results/dataset_raw/S5_B0_seed2 (164s) OK
+[20/24] đã chạy 44 phút
+
+===== S5_B0_seed3 =====
+  -> results/dataset_raw/S5_B0_seed3 (165s) OK
+[21/24] đã chạy 47 phút
+
+===== S6_B0_seed0 =====
+  -> results/dataset_raw/S6_B0_seed0 (164s) OK
+[22/24] đã chạy 49 phút
+
+===== S6_B0_seed1 =====
+  -> results/dataset_raw/S6_B0_seed1 (164s) OK
+[23/24] đã chạy 52 phút
+
+===== S6_B0_seed2 =====
+  -> results/dataset_raw/S6_B0_seed2 (164s) OK
+[24/24] đã chạy 55 phút
+
+===== S6_B0_seed3 =====
+  -> results/dataset_raw/S6_B0_seed3 (164s) OK
+
+Xong ma trận: 24/24 run OK sau 58 phút. Tổng hợp: python3 analysis/aggregate.py --raw results/dataset_raw

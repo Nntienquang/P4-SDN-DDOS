@@ -1,0 +1,52 @@
+{
+  "name": "S2_flash_only",
+  "t0": 1793701551.9867983,
+  "seed": 1,
+  "jitter": 0.3,
+  "duration": 120,
+  "phases": [
+    {
+      "kind": "normal",
+      "start": 0,
+      "end": 30,
+      "hosts": [
+        "h1",
+        "h2"
+      ],
+      "params": {
+        "clients": 2
+      }
+    },
+    {
+      "kind": "flash",
+      "start": 30,
+      "end": 90,
+      "hosts": [
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "h7",
+        "h8"
+      ],
+      "params": {
+        "peak": 23
+      }
+    },
+    {
+      "kind": "normal",
+      "start": 90,
+      "end": 120,
+      "hosts": [
+        "h1",
+        "h2"
+      ],
+      "params": {
+        "clients": 2
+      }
+    }
+  ],
+  "attack_ips": []
+}

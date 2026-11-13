@@ -1,0 +1,52 @@
+Tổng số run: 12 -> results/raw
+[1/12] đã chạy 0 phút
+
+===== S3S_B0_seed10 =====
+  -> results/raw/S3S_B0_seed10 (136s) OK
+[2/12] đã chạy 2 phút
+
+===== S3S_B0_seed11 =====
+  -> results/raw/S3S_B0_seed11 (135s) OK
+[3/12] đã chạy 5 phút
+
+===== S3S_B0_seed12 =====
+  -> results/raw/S3S_B0_seed12 (135s) OK
+[4/12] đã chạy 7 phút
+
+===== S3S_B1_seed10 =====
+  -> results/raw/S3S_B1_seed10 (135s) OK
+[5/12] đã chạy 9 phút
+
+===== S3S_B1_seed11 =====
+  -> results/raw/S3S_B1_seed11 (135s) OK
+[6/12] đã chạy 11 phút
+
+===== S3S_B1_seed12 =====
+  -> results/raw/S3S_B1_seed12 (135s) OK
+[7/12] đã chạy 14 phút
+
+===== S3S_B2_seed10 =====
+  -> results/raw/S3S_B2_seed10 (137s) OK
+[8/12] đã chạy 16 phút
+
+===== S3S_B2_seed11 =====
+  -> results/raw/S3S_B2_seed11 (137s) OK
+[9/12] đã chạy 18 phút
+
+===== S3S_B2_seed12 =====
+  -> results/raw/S3S_B2_seed12 (137s) OK
+[10/12] đã chạy 20 phút
+
+===== S3S_B3_seed10 =====
+  -> results/raw/S3S_B3_seed10 (137s) OK
+[11/12] đã chạy 23 phút
+
+===== S3S_B3_seed11 =====
+  -> results/raw/S3S_B3_seed11 (137s) OK
+[12/12] đã chạy 25 phút
+
+===== S3S_B3_seed12 =====
+  -> results/raw/S3S_B3_seed12 (138s) OK
+
+Xong ma trận: 12/12 run OK sau 27 phút. Tổng hợp: python3 analysis/aggregate.py --raw results/raw
+SPOOF_DONE

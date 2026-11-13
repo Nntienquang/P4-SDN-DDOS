@@ -1,21 +1,20 @@
+# File sinh ra khi chạy, tạo lại được
 build/*
 !build/.gitkeep
 logs/*
 !logs/.gitkeep
-results/raw/
-results/summary.csv
-figures/*.png
-models/*.pkl
-data/*.csv
-*.pcap
-__pycache__/
-*.pyc
-.env
-results/dataset_raw/
-results/*.log
-results/smoke/
 mininet/topology.json
 mininet/s1-runtime.json
-!figures/tuan*/
-!figures/tuan*/*.png
+results/smoke/
+__pycache__/
+*.pyc
+*.pcap
+.env
 .slides/
+
+# Dữ liệu cũ (25/10/2026) thu khi mạng testbed chưa thông: toàn số 0, KHÔNG dùng
+data/S1_seed*.csv
+
+# Được đưa lên repo để tái lập/kiểm tra kết quả:
+#   results/raw/, results/dataset_raw/, results/summary.csv, results/*.log,
+#   data/uniflash_v01.csv, models/*.pkl, figures/*.png
