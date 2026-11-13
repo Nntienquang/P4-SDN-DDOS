@@ -18,3 +18,4 @@ data/S1_seed*.csv
 # Được đưa lên repo để tái lập/kiểm tra kết quả:
 #   results/raw/, results/dataset_raw/, results/summary.csv, results/*.log,
 #   data/uniflash_v01.csv, models/*.pkl, figures/*.png
+!docs/w1_tcp.pcap
